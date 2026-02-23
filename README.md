@@ -68,9 +68,9 @@ No installation or server required. Just open the file in any modern browser.
 git clone https://github.com/gsantos2005-create/LD3.git
 cd LD3
 # Open in browser
-open leadership-dashboard.html        # macOS
-start leadership-dashboard.html       # Windows
-xdg-open leadership-dashboard.html   # Linux
+open index.html        # macOS
+start index.html       # Windows
+xdg-open index.html   # Linux
 ```
 
 Or download `leadership-dashboard.html` and double-click it.
