@@ -1,0 +1,2313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadOS — Leadership Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg0: #07080f;
+  --bg1: #0d0f1e;
+  --bg2: #121526;
+  --bg3: #171b30;
+  --bg4: #1d2238;
+  --bg5: #232845;
+  --border: rgba(120,135,200,0.08);
+  --border-md: rgba(120,135,200,0.13);
+  --border-hi: rgba(120,135,200,0.22);
+  --gold: #c9a84b;
+  --gold-l: #dfc06a;
+  --gold-dim: rgba(201,168,75,0.1);
+  --gold-glow: rgba(201,168,75,0.22);
+  --green: #3ecf8e;
+  --green-dim: rgba(62,207,142,0.12);
+  --amber: #f6a623;
+  --amber-dim: rgba(246,166,35,0.12);
+  --red: #e25b5b;
+  --red-dim: rgba(226,91,91,0.12);
+  --blue: #4f8ef7;
+  --blue-dim: rgba(79,142,247,0.12);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.12);
+  --t0: #eef0fa;
+  --t1: #8892b8;
+  --t2: #4b5380;
+  --font-d: 'Cormorant Garamond', Georgia, serif;
+  --font-u: 'DM Sans', sans-serif;
+  --font-m: 'DM Mono', monospace;
+  --sw: 228px;
+  --th: 62px;
+  --r: 10px;
+  --rs: 6px;
+  --rl: 16px;
+  --tr: 0.18s ease;
+}
+html.light {
+  --bg0: #f0f2f8;
+  --bg1: #e8eaf4;
+  --bg2: #f5f6fb;
+  --bg3: #ffffff;
+  --bg4: #f0f2f9;
+  --bg5: #e2e5f0;
+  --border: rgba(80,90,160,0.1);
+  --border-md: rgba(80,90,160,0.16);
+  --border-hi: rgba(80,90,160,0.28);
+  --gold: #a07c1e;
+  --gold-l: #c9a84b;
+  --gold-dim: rgba(160,124,30,0.1);
+  --gold-glow: rgba(160,124,30,0.2);
+  --green: #0f9e62;
+  --green-dim: rgba(15,158,98,0.1);
+  --amber: #c47d00;
+  --amber-dim: rgba(196,125,0,0.1);
+  --red: #c43030;
+  --red-dim: rgba(196,48,48,0.08);
+  --blue: #2563c8;
+  --blue-dim: rgba(37,99,200,0.1);
+  --purple: #6d3fc8;
+  --purple-dim: rgba(109,63,200,0.1);
+  --t0: #0f1225;
+  --t1: #3a4168;
+  --t2: #7b84b0;
+}
+html.light .sidebar {
+  background: linear-gradient(180deg, #dde0ef 0%, #d4d8ec 100%);
+}
+html.light .sidebar::before {
+  background: radial-gradient(ellipse at 50% 0%, rgba(160,124,30,0.08) 0%, transparent 60%);
+}
+html.light .main-wrapper { background: var(--bg2); }
+html.light .topbar { background: var(--bg1); }
+html.light .cap-bar-wrap { background: var(--bg5); }
+html.light .task-chip { background: var(--bg4); }
+html.light .task-chip:hover { background: var(--bg5); }
+html.light .cap-tasks-area { background: var(--bg2); }
+html.light .log-entry,
+html.light .decision-entry { background: var(--bg4); }
+html.light .risk-mitigation { background: var(--bg4); }
+html.light tbody tr:hover { background: var(--bg4); }
+html.light thead tr { background: var(--bg1); }
+html.light .modal { background: var(--bg3); }
+html.light .modal-footer { background: var(--bg4); }
+html.light .form-input,
+html.light .form-select,
+html.light .form-textarea,
+html.light .notes-area,
+html.light .filter-select,
+html.light .search-input { background: var(--bg2); color: var(--t0); }
+html.light .person-card:hover { background: var(--bg4); }
+html.light .cap-row { background: var(--bg3); }
+html.light .overview-deadline { background: var(--bg4); }
+html.light .cap-summary-item { background: var(--bg4); }
+html.light .task-mini { background: var(--bg5); }
+
+/* DATA MENU */
+.data-menu-wrap { position: relative; }
+.data-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px; border-radius: var(--r);
+  border: 1px solid var(--border-md);
+  background: var(--bg4); color: var(--t1);
+  font-family: var(--font-u); font-size: 12.5px; font-weight: 500;
+  cursor: pointer; transition: all var(--tr);
+}
+.data-btn:hover { background: var(--bg5); color: var(--t0); border-color: var(--border-hi); }
+.data-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.data-dropdown {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  background: var(--bg3); border: 1px solid var(--border-hi);
+  border-radius: var(--r); padding: 5px;
+  min-width: 188px; z-index: 50;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  animation: fadeIn 0.15s ease;
+  display: none;
+}
+.data-dropdown.open { display: block; }
+.data-dropdown-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 11px; border-radius: var(--rs);
+  font-size: 13px; color: var(--t1); cursor: pointer;
+  transition: all var(--tr);
+}
+.data-dropdown-item:hover { background: var(--bg5); color: var(--t0); }
+.data-dropdown-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.7; }
+.data-dropdown-item:hover svg { opacity: 1; }
+.data-divider { height: 1px; background: var(--border); margin: 4px 5px; }
+.data-dropdown-label {
+  font-size: 10px; color: var(--t2); text-transform: uppercase;
+  letter-spacing: 0.09em; padding: 6px 11px 3px;
+}
+
+/* Toggle button */
+.theme-toggle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-md);
+  background: var(--bg4);
+  color: var(--t1);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--tr);
+  flex-shrink: 0;
+}
+.theme-toggle:hover { background: var(--bg5); color: var(--t0); border-color: var(--border-hi); }
+.theme-toggle svg { width: 16px; height: 16px; }
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{font-family:var(--font-u);background:var(--bg0);color:var(--t0);height:100%;overflow:hidden;font-size:14px;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:4px}
+#app{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{
+  width:var(--sw);min-width:var(--sw);
+  background:linear-gradient(180deg,var(--bg1) 0%,#0b0e1f 100%);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:0;position:relative;z-index:10;
+  overflow:hidden;
+}
+.sidebar::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(201,168,75,0.06) 0%,transparent 60%);
+  pointer-events:none;
+}
+.sidebar-logo{
+  padding:22px 20px 18px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.logo-mark{
+  width:32px;height:32px;
+  background:linear-gradient(135deg,var(--gold),#8b6f1e);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-weight:700;font-size:16px;color:#07080f;
+  box-shadow:0 4px 16px var(--gold-glow);
+  flex-shrink:0;
+}
+.logo-text{font-family:var(--font-d);font-size:20px;font-weight:600;color:var(--t0);letter-spacing:0.02em}
+.logo-sub{font-size:9px;color:var(--t2);letter-spacing:0.12em;text-transform:uppercase;margin-top:1px}
+.sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.nav-label{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--t2);padding:10px 12px 4px;margin-top:4px}
+.nav-item{
+  display:flex;align-items:center;gap:11px;
+  padding:9px 12px;border-radius:var(--r);
+  cursor:pointer;transition:all var(--tr);
+  color:var(--t1);font-size:13.5px;font-weight:400;
+  position:relative;user-select:none;
+}
+.nav-item:hover{background:var(--bg3);color:var(--t0)}
+.nav-item.active{background:var(--gold-dim);color:var(--gold);font-weight:500}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:20%;bottom:20%;
+  width:2.5px;background:var(--gold);border-radius:0 2px 2px 0;
+}
+.nav-icon{width:17px;height:17px;flex-shrink:0;opacity:0.85}
+.nav-item.active .nav-icon{opacity:1}
+.nav-badge{
+  margin-left:auto;
+  background:var(--red);color:#fff;
+  font-size:10px;font-weight:600;
+  padding:1px 6px;border-radius:20px;
+  font-family:var(--font-m);
+}
+.sidebar-footer{
+  padding:14px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.avatar-sm{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:600;color:#fff;flex-shrink:0;
+}
+.footer-info{flex:1;min-width:0}
+.footer-name{font-size:13px;font-weight:500;color:var(--t0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.footer-role{font-size:11px;color:var(--t2)}
+
+/* MAIN */
+.main-wrapper{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg2)}
+.topbar{
+  height:var(--th);min-height:var(--th);
+  background:var(--bg1);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 28px;gap:16px;
+  position:relative;z-index:5;
+}
+.topbar-title{font-family:var(--font-d);font-size:22px;font-weight:600;color:var(--t0);flex:1}
+.topbar-title span{color:var(--t2);font-style:italic;font-weight:400;font-size:18px;margin-left:6px}
+.topbar-date{font-family:var(--font-m);font-size:11px;color:var(--t2);letter-spacing:0.05em}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 16px;border-radius:var(--r);
+  font-family:var(--font-u);font-size:13px;font-weight:500;
+  cursor:pointer;transition:all var(--tr);border:none;
+}
+.btn-primary{background:var(--gold);color:#07080f}
+.btn-primary:hover{background:var(--gold-l);box-shadow:0 4px 16px var(--gold-glow)}
+.btn-ghost{background:transparent;color:var(--t1);border:1px solid var(--border-md)}
+.btn-ghost:hover{background:var(--bg4);color:var(--t0);border-color:var(--border-hi)}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(226,91,91,0.2)}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-icon{padding:7px;width:34px;height:34px;justify-content:center}
+
+.main-content{flex:1;overflow-y:auto;padding:28px;animation:fadeIn 0.25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.view{animation:fadeIn 0.22s ease}
+
+/* CARDS */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:20px;transition:border-color var(--tr)}
+.card:hover{border-color:var(--border-md)}
+.card-sm{padding:14px 16px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.section-title{font-family:var(--font-d);font-size:20px;font-weight:600;color:var(--t0)}
+.section-sub{font-size:12px;color:var(--t2);margin-top:2px}
+
+/* BADGES */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;border-radius:20px;
+  font-size:11px;font-weight:500;font-family:var(--font-m);
+  white-space:nowrap;
+}
+.badge-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(62,207,142,0.18)}
+.badge-amber{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(246,166,35,0.18)}
+.badge-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(226,91,91,0.18)}
+.badge-blue{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(79,142,247,0.18)}
+.badge-purple{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.18)}
+.badge-gold{background:var(--gold-dim);color:var(--gold);border:1px solid var(--gold-glow)}
+.badge-gray{background:rgba(75,83,128,0.15);color:var(--t2);border:1px solid rgba(75,83,128,0.2)}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-green{background:var(--green);box-shadow:0 0 6px rgba(62,207,142,0.5)}
+.dot-amber{background:var(--amber);box-shadow:0 0 6px rgba(246,166,35,0.5)}
+.dot-red{background:var(--red);box-shadow:0 0 6px rgba(226,91,91,0.5);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* CAPACITY BAR */
+.cap-bar-wrap{height:8px;background:var(--bg5);border-radius:4px;overflow:hidden;flex:1}
+.cap-bar{height:100%;border-radius:4px;transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1)}
+.cap-bar-green{background:linear-gradient(90deg,#2ab87a,var(--green))}
+.cap-bar-amber{background:linear-gradient(90deg,#d4851a,var(--amber))}
+.cap-bar-red{background:linear-gradient(90deg,#c23636,var(--red))}
+
+/* GRID LAYOUTS */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-2-3{display:grid;grid-template-columns:2fr 3fr;gap:16px}
+
+/* KPI CARD */
+.kpi-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--rl);padding:18px 20px;
+  position:relative;overflow:hidden;
+  transition:all var(--tr);cursor:default;
+}
+.kpi-card:hover{border-color:var(--border-md);transform:translateY(-1px)}
+.kpi-card::after{
+  content:'';position:absolute;top:0;right:0;
+  width:80px;height:80px;
+  border-radius:50%;
+  transform:translate(30px,-30px);
+  opacity:0.06;
+}
+.kpi-card.gold::after{background:var(--gold)}
+.kpi-card.green::after{background:var(--green)}
+.kpi-card.red::after{background:var(--red)}
+.kpi-card.amber::after{background:var(--amber)}
+.kpi-label{font-size:11px;color:var(--t2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
+.kpi-value{font-family:var(--font-d);font-size:38px;font-weight:700;line-height:1;color:var(--t0)}
+.kpi-value.red{color:var(--red)}
+.kpi-value.amber{color:var(--amber)}
+.kpi-value.green{color:var(--green)}
+.kpi-sub{font-size:12px;color:var(--t2);margin-top:6px}
+
+/* PERSON CARDS */
+.person-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--rl);padding:20px;
+  cursor:pointer;transition:all var(--tr);
+  display:flex;flex-direction:column;gap:14px;
+}
+.person-card:hover{border-color:var(--border-md);background:var(--bg4);transform:translateY(-1px)}
+.person-header{display:flex;align-items:center;gap:12px}
+.avatar{
+  width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:600;color:#fff;flex-shrink:0;
+  border:2px solid rgba(255,255,255,0.1);
+}
+.person-name{font-size:15px;font-weight:600;color:var(--t0)}
+.person-role{font-size:12px;color:var(--t2);margin-top:1px}
+.person-cap{display:flex;align-items:center;gap:10px;margin-top:2px}
+.cap-pct{font-family:var(--font-m);font-size:12px;font-weight:500;white-space:nowrap}
+.person-stats{display:flex;gap:16px}
+.stat-item{text-align:center}
+.stat-v{font-family:var(--font-m);font-size:18px;font-weight:500;color:var(--t0);line-height:1}
+.stat-l{font-size:10px;color:var(--t2);margin-top:3px;text-transform:uppercase;letter-spacing:0.06em}
+.person-tasks-preview{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+.task-mini{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 10px;background:var(--bg5);
+  border-radius:var(--rs);font-size:12px;color:var(--t1);
+}
+.task-mini-title{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-mini-badge{flex-shrink:0}
+.show-more{font-size:11px;color:var(--t2);text-align:center;cursor:pointer;padding:4px}
+.show-more:hover{color:var(--gold)}
+
+/* CAPACITY VIEW */
+.cap-row{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--rl);padding:18px 22px;
+  transition:border-color var(--tr);
+}
+.cap-row:hover{border-color:var(--border-md)}
+.cap-row-header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.cap-info{flex:1;display:flex;align-items:center;gap:16px}
+.cap-details{flex:1}
+.cap-name{font-size:15px;font-weight:600;color:var(--t0)}
+.cap-role{font-size:12px;color:var(--t2)}
+.cap-pct-label{font-family:var(--font-m);font-size:22px;font-weight:500}
+.cap-hours{font-size:11px;color:var(--t2);margin-top:1px}
+.cap-tasks-area{display:flex;flex-wrap:wrap;gap:8px;min-height:36px;padding:10px;background:var(--bg2);border-radius:var(--r);border:1px dashed var(--border);transition:all var(--tr)}
+.cap-tasks-area.drag-over{border-color:var(--gold);background:var(--gold-dim)}
+.task-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 11px;background:var(--bg4);
+  border:1px solid var(--border-md);border-radius:var(--rs);
+  font-size:12px;color:var(--t1);cursor:grab;
+  transition:all var(--tr);white-space:nowrap;
+}
+.task-chip:hover{background:var(--bg5);color:var(--t0);border-color:var(--border-hi)}
+.task-chip:active{cursor:grabbing;transform:scale(0.97)}
+.task-chip.dragging{opacity:0.4;transform:rotate(1deg)}
+
+/* PROJECTS TABLE */
+.table-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;min-width:760px}
+thead tr{background:var(--bg1);border-bottom:1px solid var(--border-md)}
+th{
+  padding:11px 14px;text-align:left;
+  font-size:11px;font-weight:500;color:var(--t2);
+  letter-spacing:0.07em;text-transform:uppercase;
+  white-space:nowrap;cursor:pointer;user-select:none;
+  transition:color var(--tr);
+}
+th:hover{color:var(--t1)}
+th.sorted{color:var(--gold)}
+tbody tr{border-bottom:1px solid var(--border);transition:background var(--tr)}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--bg4)}
+td{padding:12px 14px;font-size:13px;color:var(--t1)}
+td:first-child{color:var(--t0);font-weight:500}
+.priority-bar{
+  display:flex;gap:2px;align-items:center;
+}
+.p-pip{width:8px;height:8px;border-radius:2px;background:var(--bg5)}
+.p-pip.filled-5{background:var(--red)}
+.p-pip.filled-4{background:var(--amber)}
+.p-pip.filled-3{background:var(--blue)}
+.p-pip.filled-2{background:var(--green)}
+.p-pip.filled-1{background:var(--t2)}
+.conflict-flag{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;color:var(--red);font-weight:600;
+  margin-left:6px;
+}
+
+/* FILTERS */
+.filter-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.filter-select{
+  background:var(--bg3);border:1px solid var(--border-md);
+  color:var(--t1);padding:7px 12px;border-radius:var(--r);
+  font-family:var(--font-u);font-size:13px;cursor:pointer;
+  transition:all var(--tr);outline:none;
+}
+.filter-select:hover,.filter-select:focus{border-color:var(--border-hi);color:var(--t0)}
+.filter-select option{background:var(--bg2)}
+.search-input{
+  background:var(--bg3);border:1px solid var(--border-md);
+  color:var(--t0);padding:7px 14px;border-radius:var(--r);
+  font-family:var(--font-u);font-size:13px;outline:none;
+  transition:all var(--tr);
+}
+.search-input::placeholder{color:var(--t2)}
+.search-input:focus{border-color:var(--border-hi)}
+
+/* RISK CARDS */
+.risk-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--rl);padding:18px 20px;
+  transition:all var(--tr);cursor:pointer;
+  border-left:3px solid transparent;
+}
+.risk-card:hover{background:var(--bg4);border-color:var(--border-md)}
+.risk-card.risk-high{border-left-color:var(--red)}
+.risk-card.risk-medium{border-left-color:var(--amber)}
+.risk-card.risk-low{border-left-color:var(--green)}
+.risk-card.overdue{background:rgba(226,91,91,0.05)}
+.risk-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.risk-title{font-size:14px;font-weight:600;color:var(--t0);flex:1}
+.risk-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.risk-aging{font-family:var(--font-m);font-size:11px;color:var(--t2)}
+.risk-aging.old{color:var(--red)}
+.risk-mitigation{font-size:12px;color:var(--t2);line-height:1.5;background:var(--bg2);padding:8px 12px;border-radius:var(--rs);margin-top:8px}
+
+/* 1:1 VIEW */
+.person-selector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.person-pill{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 14px;border-radius:30px;
+  border:1px solid var(--border-md);cursor:pointer;
+  transition:all var(--tr);font-size:13px;color:var(--t1);
+  background:var(--bg3);
+}
+.person-pill:hover{border-color:var(--border-hi);color:var(--t0)}
+.person-pill.active{border-color:var(--gold);background:var(--gold-dim);color:var(--gold)}
+.one-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.one-full{grid-column:1/-1}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{padding:4px 10px;background:var(--bg5);border-radius:20px;font-size:11px;color:var(--t1)}
+.tag-strength{background:var(--green-dim);color:var(--green)}
+.tag-growth{background:var(--amber-dim);color:var(--amber)}
+.log-entry{
+  padding:12px 14px;background:var(--bg2);
+  border-radius:var(--r);margin-top:8px;
+  border-left:2px solid var(--border-hi);
+}
+.log-entry:first-child{margin-top:0}
+.log-date{font-family:var(--font-m);font-size:10px;color:var(--t2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em}
+.log-text{font-size:13px;color:var(--t1);line-height:1.55}
+.decision-entry{
+  padding:12px 14px;background:var(--bg2);
+  border-radius:var(--r);margin-top:8px;
+  border-left:2px solid var(--gold-glow);
+}
+.decision-entry .log-text{font-weight:500;color:var(--t0)}
+.decision-rationale{font-size:12px;color:var(--t2);margin-top:4px;font-style:italic}
+.goals-list{list-style:none;margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.goals-list li{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;background:var(--bg2);border-radius:var(--rs);
+  font-size:13px;color:var(--t1);
+}
+.goals-list li::before{content:'→';color:var(--gold);font-size:12px;flex-shrink:0}
+.notes-area{
+  width:100%;background:var(--bg2);border:1px solid var(--border-md);
+  color:var(--t0);padding:12px 14px;border-radius:var(--r);
+  font-family:var(--font-u);font-size:13px;line-height:1.6;
+  resize:vertical;min-height:100px;outline:none;
+  transition:border-color var(--tr);
+}
+.notes-area:focus{border-color:var(--border-hi)}
+.card-title{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.card-title span{color:var(--t0)}
+
+/* OVERVIEW */
+.overview-alert{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;background:var(--red-dim);
+  border:1px solid rgba(226,91,91,0.22);border-radius:var(--r);
+  margin-bottom:8px;font-size:13px;color:var(--red);
+}
+.overview-alert .alert-icon{font-size:16px;flex-shrink:0}
+.overview-deadline{
+  display:flex;align-items:center;
+  padding:10px 14px;background:var(--bg2);border-radius:var(--rs);
+  margin-bottom:6px;gap:10px;
+}
+.deadline-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.deadline-info{flex:1}
+.deadline-title{font-size:13px;font-weight:500;color:var(--t0)}
+.deadline-meta{font-size:11px;color:var(--t2);margin-top:1px}
+.deadline-date{font-family:var(--font-m);font-size:12px;white-space:nowrap;color:var(--t2)}
+
+/* MODAL */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(7,8,15,0.8);
+  z-index:100;display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--bg3);border:1px solid var(--border-md);
+  border-radius:var(--rl);padding:0;
+  width:560px;max-width:95vw;max-height:88vh;
+  overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.6);
+  animation:modalIn 0.2s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(0.96)translateY(8px)}to{opacity:1;transform:scale(1)translateY(0)}}
+.modal-header{padding:22px 24px 18px;border-bottom:1px solid var(--border)}
+.modal-header h2{font-family:var(--font-d);font-size:22px;font-weight:600;color:var(--t0)}
+.modal-header p{font-size:12px;color:var(--t2);margin-top:3px}
+.modal-body{padding:22px 24px}
+.modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:var(--bg2);border-radius:0 0 var(--rl) var(--rl)}
+.form-row{margin-bottom:16px}
+.form-row label{display:block;font-size:12px;font-weight:500;color:var(--t2);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase}
+.form-input,.form-select,.form-textarea{
+  width:100%;background:var(--bg2);border:1px solid var(--border-md);
+  color:var(--t0);padding:9px 13px;border-radius:var(--r);
+  font-family:var(--font-u);font-size:13px;outline:none;
+  transition:border-color var(--tr);
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--border-hi)}
+.form-select{cursor:pointer}
+.form-select option{background:var(--bg2)}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.55}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--bg4);border:1px solid var(--border-hi);
+  color:var(--t0);padding:12px 18px;border-radius:var(--r);
+  font-size:13px;z-index:200;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  transform:translateY(8px);opacity:0;
+  transition:all 0.22s ease;
+  pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:rgba(62,207,142,0.3);background:rgba(62,207,142,0.08)}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:16px 0}
+
+/* UTILITY */
+.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-6{gap:6px}.gap-8{gap:8px}.gap-10{gap:10px}.gap-12{gap:12px}.gap-16{gap:16px}.mt-6{margin-top:6px}.mt-8{margin-top:8px}.mt-10{margin-top:10px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-20{margin-top:20px}.mb-4{margin-bottom:4px}.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}.w-full{width:100%}.text-sm{font-size:12px}.text-xs{font-size:11px}.text-mono{font-family:var(--font-m)}.text-muted{color:var(--t2)}.text-gold{color:var(--gold)}.text-red{color:var(--red)}.text-green{color:var(--green)}.text-amber{color:var(--amber)}.font-600{font-weight:600}.flex-1{flex:1}.overflow-hidden{overflow:hidden}.truncate{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty-state{text-align:center;padding:40px;color:var(--t2);font-size:13px}
+
+/* OVERVIEW SPECIFIC */
+.risk-summary-row{display:flex;flex-direction:column;gap:8px}
+.escalation-card{
+  padding:14px 16px;background:var(--red-dim);
+  border:1px solid rgba(226,91,91,0.2);border-radius:var(--r);
+  display:flex;align-items:center;gap:12px;
+}
+.escalation-text{font-size:13px;color:var(--t0)}
+.escalation-sub{font-size:11px;color:var(--t2);margin-top:2px}
+
+/* CAPACITY SUMMARY IN OVERVIEW */
+.cap-summary-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;background:var(--bg2);border-radius:var(--r);margin-bottom:6px;
+}
+.cap-summary-item .avatar{width:30px;height:30px;font-size:11px}
+.cap-summary-name{font-size:13px;font-weight:500;color:var(--t0);width:110px;flex-shrink:0}
+.cap-summary-bar{flex:1;height:6px;background:var(--bg5);border-radius:3px;overflow:hidden}
+.cap-summary-fill{height:100%;border-radius:3px}
+.cap-summary-pct{font-family:var(--font-m);font-size:11px;width:38px;text-align:right;flex-shrink:0}
+
+/* COLOR SWATCHES */
+.color-swatches{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.color-swatch{
+  width:28px;height:28px;border-radius:50%;cursor:pointer;
+  border:2px solid transparent;transition:all var(--tr);
+  flex-shrink:0;
+}
+.color-swatch:hover{transform:scale(1.15)}
+.color-swatch.selected{border-color:var(--t0);box-shadow:0 0 0 2px var(--bg2)}
+
+/* Edit button on card */
+.card-edit-btn{
+  width:28px;height:28px;border-radius:var(--rs);
+  border:1px solid var(--border-md);background:var(--bg5);
+  color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all var(--tr);flex-shrink:0;
+}
+.card-edit-btn:hover{background:var(--bg4);color:var(--t0);border-color:var(--border-hi)}
+.card-edit-btn svg{width:13px;height:13px}
+
+/* ICON HELPER */
+.icon{display:inline-flex;align-items:center;justify-content:center}
+
+@media(max-width:900px){
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .grid-3{grid-template-columns:repeat(2,1fr)}
+  .one-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">L</div>
+      <div>
+        <div class="logo-text">LeadOS</div>
+        <div class="logo-sub">Command Center</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Workspace</div>
+      <div class="nav-item active" onclick="navigate('overview')" data-view="overview">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg>
+        Overview
+      </div>
+      <div class="nav-item" onclick="navigate('team')" data-view="team">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zm8 0a3 3 0 11-6 0 3 3 0 016 0zm-4.07 11c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+        Team
+      </div>
+      <div class="nav-item" onclick="navigate('capacity')" data-view="capacity">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><rect x="1" y="13" width="4" height="5" rx="1"/><rect x="7" y="9" width="4" height="9" rx="1"/><rect x="13" y="5" width="4" height="13" rx="1"/></svg>
+        Workload
+      </div>
+      <div class="nav-item" onclick="navigate('projects')" data-view="projects">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M2 4a2 2 0 012-2h4a2 2 0 012 2v4H2V4zm0 6h8v6a2 2 0 01-2 2H4a2 2 0 01-2-2v-6zm10-6a2 2 0 012-2h2a2 2 0 012 2v12a2 2 0 01-2 2h-2a2 2 0 01-2-2V4z"/></svg>
+        Projects
+      </div>
+      <div class="nav-label">Leadership</div>
+      <div class="nav-item" onclick="navigate('risks')" data-view="risks">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        Risk Tracker
+        <span class="nav-badge" id="risk-badge">5</span>
+      </div>
+      <div class="nav-item" onclick="navigate('oto')" data-view="oto">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/></svg>
+        1:1 Support
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="avatar-sm" style="background:linear-gradient(135deg,#4f8ef7,#2563eb)">VP</div>
+      <div class="footer-info">
+        <div class="footer-name">Alex Morgan</div>
+        <div class="footer-role">VP Engineering</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <div class="topbar-title" id="topbar-title">Overview <span>Weekly Snapshot</span></div>
+      <div class="topbar-date" id="topbar-date"></div>
+      <div class="topbar-actions" id="topbar-actions"></div>
+      <div class="data-menu-wrap" id="data-menu-wrap">
+        <button class="data-btn" onclick="toggleDataMenu(event)" title="Save / Export / Import data">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Data
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="data-dropdown" id="data-dropdown">
+          <div class="data-dropdown-label">Export</div>
+          <div class="data-dropdown-item" onclick="exportJSON()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download as JSON
+          </div>
+          <div class="data-dropdown-item" onclick="copyJSON()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy to clipboard
+          </div>
+          <div class="data-divider"></div>
+          <div class="data-dropdown-label">Import</div>
+          <div class="data-dropdown-item" onclick="document.getElementById('json-file-input').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Load from JSON file
+          </div>
+          <div class="data-dropdown-item" onclick="openPasteImport()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+            Paste JSON
+          </div>
+          <div class="data-divider"></div>
+          <div class="data-dropdown-label">Auto-save</div>
+          <div class="data-dropdown-item" onclick="saveToLocalStorage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save to browser
+          </div>
+          <div class="data-dropdown-item" onclick="clearLocalStorage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            Clear saved data
+          </div>
+        </div>
+      </div>
+      <input type="file" id="json-file-input" accept=".json,application/json" style="display:none" onchange="importFromFile(event)">
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+        <svg id="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
+        <svg id="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </header>
+    <main class="main-content" id="main-content"></main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOnOverlay(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header" id="modal-header"></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const PROJECTS_DEFAULT = [
+  { id:'P1', name:'Project Nexus', desc:'ERP Migration', bp:5, reg:'High', status:'Active', color:'#e25b5b', deadline:'2026-04-30' },
+  { id:'P2', name:'Project Aurora', desc:'Customer Portal', bp:4, reg:'Medium', status:'Active', color:'#c9a84b', deadline:'2026-03-15' },
+  { id:'P3', name:'Project Delta', desc:'Data Warehouse', bp:3, reg:'Low', status:'Active', color:'#4f8ef7', deadline:'2026-05-31' },
+  { id:'P4', name:'Project Titan', desc:'Infra Modernization', bp:4, reg:'High', status:'Active', color:'#a78bfa', deadline:'2026-03-31' },
+];
+
+const TEAM = [
+  { id:'M1', name:'Sarah Chen', initials:'SC', role:'Senior Engineer', color:'#4f8ef7',
+    notes:'Sarah is performing exceptionally on the Aurora API work. Ready for tech lead responsibilities — discuss in next 1:1.',
+    goals:['Lead cross-functional team by Q3 2026','Complete AWS Solutions Architect cert','Mentor 1 junior engineer'],
+    strengths:['Technical depth','Problem-solving','Collaboration','Code quality'],
+    growth:['Executive communication','Project scoping','Delegation'],
+    coachingLog:[
+      { date:'2026-02-10', note:'Discussed promotion criteria for Staff Engineer. Needs to demonstrate leadership on a critical initiative.' },
+      { date:'2026-01-20', note:'Explored interest in tech lead responsibilities. Very receptive, asked sharp questions about scope and ownership.' },
+    ],
+    decisionLog:[
+      { date:'2026-02-05', decision:'Assigned Sarah as tech lead for Project Aurora API integration', rationale:'Best technical match; strong development opportunity toward Staff Engineer goal' },
+    ]
+  },
+  { id:'M2', name:'Marcus Williams', initials:'MW', role:'Product Manager', color:'#c9a84b',
+    notes:'Marcus is stretched across too many workstreams. Need to prioritize — consider delegating the Delta sprint planning.',
+    goals:['Define 2026 product roadmap by Q1','Drive Nexus go-live by April','Build stakeholder communication cadence'],
+    strengths:['Strategic thinking','Stakeholder alignment','Communication','Prioritization'],
+    growth:['Technical depth','Data analysis','Saying no to low-priority requests'],
+    coachingLog:[
+      { date:'2026-02-12', note:'Marcus flagged burnout risk — managing 4 projects simultaneously. Agreed to deprioritize Delta involvement for 2 weeks.' },
+      { date:'2026-01-28', note:'Strong executive presentation. Promotion conversation scheduled for Q2 review cycle.' },
+    ],
+    decisionLog:[
+      { date:'2026-02-01', decision:'Escalated Aurora deadline to CTO — original March 15 target unachievable', rationale:'Engineering capacity conflict with Nexus. New date TBD pending CTO review.' },
+    ]
+  },
+  { id:'M3', name:'Elena Rodriguez', initials:'ER', role:'Data Analyst', color:'#3ecf8e',
+    notes:'Elena is well-paced and producing high-quality work. Good candidate for leading the Data Governance initiative in Q3.',
+    goals:['Lead Data Governance framework','Build executive analytics dashboards','Learn dbt and data modeling'],
+    strengths:['Data quality','Documentation','Analytical rigor','Attention to detail'],
+    growth:['Presenting to senior stakeholders','Proactive communication','Influencing without authority'],
+    coachingLog:[
+      { date:'2026-02-08', note:'Elena expressed interest in a more senior role. Discussed Data Governance initiative as a stretch project.' },
+    ],
+    decisionLog:[
+      { date:'2026-01-15', decision:'Assigned Elena as data lead for Project Delta analytics track', rationale:'Best skill match; workload allows capacity for new responsibility' },
+    ]
+  },
+  { id:'M4', name:'James Park', initials:'JP', role:'DevOps Lead', color:'#e25b5b',
+    notes:'CRITICAL: James is severely overloaded at 122% capacity. Immediately reassign Security Audit to Tom. Discuss sustainable pace.',
+    goals:['Automate 80% of deployment pipeline','Achieve SOC2 compliance by Q2','Document all infra runbooks'],
+    strengths:['Infrastructure expertise','Reliability','Proactive risk flagging','Deep technical knowledge'],
+    growth:['Work-life balance','Delegation','Asking for help'],
+    coachingLog:[
+      { date:'2026-02-15', note:'URGENT: James working evenings and weekends. Capacity crisis — Titan and Nexus both require him simultaneously. Must escalate resource conflict.' },
+      { date:'2026-01-30', note:'James flagged that CI/CD pipeline for Nexus is more complex than estimated. Adding 4h buffer to estimate.' },
+    ],
+    decisionLog:[
+      { date:'2026-02-10', decision:'Escalated James Park resource conflict to leadership', rationale:'Cannot deliver Titan infra setup AND Nexus CI/CD at same time without quality risk or burnout' },
+    ]
+  },
+  { id:'M5', name:'Priya Sharma', initials:'PS', role:'UX Designer', color:'#a78bfa',
+    notes:'Priya has strong output and good capacity headroom. Consider pulling in for Nexus user journey work earlier than planned.',
+    goals:['Deliver Aurora portal designs by Feb end','Create scalable design system','Run 3 user research sessions per quarter'],
+    strengths:['User empathy','Visual design','Research facilitation','Cross-team collaboration'],
+    growth:['Advocating for design earlier in process','Metrics-driven design decisions','Presentation skills'],
+    coachingLog:[
+      { date:'2026-02-09', note:'Priya wants more exposure to product strategy conversations. Will invite to next product review.' },
+    ],
+    decisionLog:[
+      { date:'2026-01-25', decision:'Prioritized Aurora UX work over Titan design system', rationale:'Aurora has harder deadline and higher business priority' },
+    ]
+  },
+  { id:'M6', name:'Tom Bradley', initials:'TB', role:'Backend Engineer', color:'#f6a623',
+    notes:'Tom is at 90% — near threshold. Monitor closely. Strong on delivery but tends to underestimate complexity.',
+    goals:['Lead auth service architecture for Aurora','Improve code review turnaround','Complete System Design course'],
+    strengths:['Backend architecture','Delivery pace','Team player','Code clarity'],
+    growth:['Estimation accuracy','Proactive status updates','Testing discipline'],
+    coachingLog:[
+      { date:'2026-02-11', note:'Estimation for auth service was off by 40%. Worked through root-cause — requirements were ambiguous at start. Created checklist for future estimation.' },
+    ],
+    decisionLog:[
+      { date:'2026-02-03', decision:'Tom to pair with Sarah on ERP database schema work', rationale:'Cross-training benefit; Sarah can unblock Tom on ERP domain knowledge' },
+    ]
+  },
+];
+
+const TASKS = [
+  { id:'T01', title:'API Integration for Customer Portal', mid:'M1', pid:'P2', priority:'High', bp:4, reg:'Medium', due:'2026-03-01', hours:12, risk:'amber', status:'In Progress' },
+  { id:'T02', title:'ERP Database Schema Review', mid:'M1', pid:'P1', priority:'High', bp:5, reg:'High', due:'2026-02-28', hours:10, risk:'red', status:'In Progress' },
+  { id:'T03', title:'Code Review — Sprint 4', mid:'M1', pid:'P4', priority:'Medium', bp:4, reg:'Low', due:'2026-03-07', hours:8, risk:'green', status:'Pending' },
+  { id:'T04', title:'Performance Testing Suite', mid:'M1', pid:'P2', priority:'Low', bp:3, reg:'Low', due:'2026-03-14', hours:4, risk:'green', status:'Pending' },
+  { id:'T05', title:'Executive Stakeholder Presentation', mid:'M2', pid:'P1', priority:'High', bp:5, reg:'High', due:'2026-02-27', hours:8, risk:'red', status:'In Progress' },
+  { id:'T06', title:'Customer Portal Requirements Doc', mid:'M2', pid:'P2', priority:'High', bp:4, reg:'Medium', due:'2026-03-05', hours:12, risk:'amber', status:'In Progress' },
+  { id:'T07', title:'Sprint Planning Workshop', mid:'M2', pid:'P3', priority:'Medium', bp:3, reg:'Low', due:'2026-03-10', hours:6, risk:'green', status:'Pending' },
+  { id:'T08', title:'Infra Modernization Business Case', mid:'M2', pid:'P4', priority:'High', bp:4, reg:'High', due:'2026-03-03', hours:10, risk:'amber', status:'In Progress' },
+  { id:'T09', title:'Vendor Contract Negotiations', mid:'M2', pid:'P1', priority:'Medium', bp:5, reg:'Medium', due:'2026-03-15', hours:4, risk:'green', status:'Pending' },
+  { id:'T10', title:'Data Quality Audit Framework', mid:'M3', pid:'P3', priority:'Medium', bp:3, reg:'Medium', due:'2026-03-10', hours:10, risk:'green', status:'In Progress' },
+  { id:'T11', title:'Customer Analytics Dashboard', mid:'M3', pid:'P2', priority:'Low', bp:3, reg:'Low', due:'2026-03-20', hours:8, risk:'green', status:'Pending' },
+  { id:'T12', title:'ERP Migration Analytics Report', mid:'M3', pid:'P1', priority:'Medium', bp:4, reg:'High', due:'2026-03-07', hours:6, risk:'amber', status:'In Progress' },
+  { id:'T13', title:'Infra Server Setup — Titan', mid:'M4', pid:'P4', priority:'High', bp:4, reg:'High', due:'2026-02-28', hours:15, risk:'red', status:'In Progress' },
+  { id:'T14', title:'ERP CI/CD Pipeline Build', mid:'M4', pid:'P1', priority:'High', bp:5, reg:'High', due:'2026-03-01', hours:14, risk:'red', status:'In Progress' },
+  { id:'T15', title:'Customer Portal Security Audit', mid:'M4', pid:'P2', priority:'High', bp:4, reg:'High', due:'2026-03-05', hours:12, risk:'amber', status:'Pending' },
+  { id:'T16', title:'Data Warehouse Monitoring Setup', mid:'M4', pid:'P3', priority:'Medium', bp:3, reg:'Low', due:'2026-03-12', hours:8, risk:'green', status:'Pending' },
+  { id:'T17', title:'Customer Portal UX Research', mid:'M5', pid:'P2', priority:'High', bp:4, reg:'Low', due:'2026-03-08', hours:10, risk:'green', status:'In Progress' },
+  { id:'T18', title:'Design System Component Library', mid:'M5', pid:'P4', priority:'Low', bp:2, reg:'Low', due:'2026-03-21', hours:6, risk:'green', status:'Pending' },
+  { id:'T19', title:'ERP User Journey Mapping', mid:'M5', pid:'P1', priority:'Medium', bp:4, reg:'Medium', due:'2026-03-14', hours:4, risk:'green', status:'Pending' },
+  { id:'T20', title:'ERP Backend API Development', mid:'M6', pid:'P1', priority:'High', bp:5, reg:'High', due:'2026-03-03', hours:14, risk:'amber', status:'In Progress' },
+  { id:'T21', title:'Data Warehouse Query Optimization', mid:'M6', pid:'P3', priority:'Medium', bp:3, reg:'Low', due:'2026-03-15', hours:10, risk:'green', status:'Pending' },
+  { id:'T22', title:'Customer Portal Auth Service', mid:'M6', pid:'P2', priority:'High', bp:4, reg:'High', due:'2026-03-07', hours:8, risk:'amber', status:'In Progress' },
+  { id:'T23', title:'Unit Test Coverage Sprint', mid:'M6', pid:'P2', priority:'Low', bp:3, reg:'Low', due:'2026-03-18', hours:4, risk:'green', status:'Pending' },
+];
+
+const RISKS = [
+  { id:'R1', title:'Data Migration Integrity Risk', pid:'P1', owner:'M4', severity:'High', status:'Open', mitigation:'Parallel run testing for 2 weeks before cutover. Daily integrity checks. Rollback plan documented.', identified:'2026-01-15', due:'2026-02-28', notes:'3 data quality issues found in UAT. Escalated to data team.' },
+  { id:'R2', title:'Regulatory Deadline Conflict — Titan & Nexus', pid:'P4', owner:'M2', severity:'High', status:'Open', mitigation:'Requested 2-week extension from compliance team. Awaiting approval. Flagged to CTO.', identified:'2026-01-22', due:'2026-02-25', notes:'Both projects have March compliance requirements. Single team overlap with James Park.' },
+  { id:'R3', title:'Key Person Dependency — Infrastructure', pid:'P4', owner:'M1', severity:'High', status:'Open', mitigation:'Begin cross-training Tom Bradley on DevOps tooling. Document runbooks for core systems.', identified:'2026-02-01', due:'2026-03-01', notes:'James Park is single point of failure for all infra. Bus factor = 1.' },
+  { id:'R4', title:'Integration Testing Gaps — Aurora', pid:'P2', owner:'M6', severity:'Medium', status:'Open', mitigation:'Add integration test sprint before launch. Tom to own test coverage tracking.', identified:'2026-02-05', due:'2026-03-10', notes:'Current test coverage at 34%. Target is 70% before launch.' },
+  { id:'R5', title:'Resource Overallocation Crisis', pid:'P1', owner:'M2', severity:'High', status:'Open', mitigation:'Immediate task reassignment. Deprioritize Delta work for James and Marcus for 2 weeks.', identified:'2026-02-12', due:'2026-02-20', notes:'OVERDUE: Action required immediately. James at 122% capacity.' },
+  { id:'R6', title:'Aurora Launch Date Slippage', pid:'P2', owner:'M2', severity:'Medium', status:'Monitoring', mitigation:'Weekly scope review. CTO briefed. Contingency: phase 1 scope reduction identified.', identified:'2026-01-30', due:'2026-03-30', notes:'Original March 15 target at risk. Phased launch under consideration.' },
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const state = {
+  view: 'overview',
+  taskFilter: { project:'all', priority:'all', risk:'all', sort:'due' },
+  riskFilter: 'all',
+  selectedPerson: 'M1',
+  tasks: JSON.parse(JSON.stringify(TASKS)),
+  risks: JSON.parse(JSON.stringify(RISKS)),
+  team: JSON.parse(JSON.stringify(TEAM)),
+  projects: JSON.parse(JSON.stringify(PROJECTS_DEFAULT)),
+  dragTask: null,
+};
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function getCapacity(mid) {
+  const m = state.team.find(x=>x.id===mid);
+  const cap = m?.weeklyCapacity || 40;
+  const hours = state.tasks.filter(t=>t.mid===mid).reduce((s,t)=>s+t.hours,0);
+  return { hours, pct: Math.round(hours/cap*100), cap };
+}
+function capColor(pct) {
+  if(pct>=100) return 'red'; if(pct>=80) return 'amber'; return 'green';
+}
+function capBarClass(pct) {
+  if(pct>=100) return 'cap-bar-red'; if(pct>=80) return 'cap-bar-amber'; return 'cap-bar-green';
+}
+function riskBadge(r) {
+  if(r==='red') return '<span class="badge badge-red"><span class="dot dot-red"></span>High</span>';
+  if(r==='amber') return '<span class="badge badge-amber"><span class="dot dot-amber"></span>Medium</span>';
+  return '<span class="badge badge-green"><span class="dot dot-green"></span>Low</span>';
+}
+function priorityBadge(p) {
+  if(p==='High') return '<span class="badge badge-red">High</span>';
+  if(p==='Medium') return '<span class="badge badge-amber">Medium</span>';
+  return '<span class="badge badge-gray">Low</span>';
+}
+function regBadge(r) {
+  if(r==='High') return '<span class="badge badge-red">High</span>';
+  if(r==='Medium') return '<span class="badge badge-amber">Medium</span>';
+  return '<span class="badge badge-gray">Low</span>';
+}
+function severityBadge(s) {
+  if(s==='High') return '<span class="badge badge-red">High</span>';
+  if(s==='Medium') return '<span class="badge badge-amber">Medium</span>';
+  return '<span class="badge badge-green">Low</span>';
+}
+function getProject(pid) { return state.projects.find(p=>p.id===pid)||{name:'Unknown',color:'#4b5380',desc:'',bp:1,reg:'Low',status:'Active',deadline:''} }
+function getMember(mid) { return state.team.find(m=>m.id===mid)||{name:'—',initials:'?',color:'#4b5380'} }
+function fmtDate(d) {
+  if(!d) return '—';
+  const dt = new Date(d+'T00:00:00');
+  return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function isOverdue(d) { return d && new Date(d+'T00:00:00') < new Date() }
+function daysAgo(d) { return Math.floor((new Date()-new Date(d+'T00:00:00'))/(1000*60*60*24)) }
+function daysUntil(d) { return Math.ceil((new Date(d+'T00:00:00')-new Date())/(1000*60*60*24)) }
+function bpPips(bp) {
+  let h='<div class="priority-bar">';
+  for(let i=1;i<=5;i++) h+=`<div class="p-pip${i<=bp?' filled-'+bp:''}"></div>`;
+  return h+'</div>';
+}
+function avatar(m,size=42) {
+  return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.3)}px;background:linear-gradient(135deg,${m.color}cc,${m.color}66)">${m.initials}</div>`;
+}
+function showToast(msg, type='') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(type?' '+type:'');
+  setTimeout(()=>t.className='toast',2800);
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+const TITLES = {
+  overview: ['Overview','Weekly Snapshot'],
+  team: ['Team','People Dashboard'],
+  capacity: ['Workload','Capacity & Allocation'],
+  projects: ['Projects','Priority Tracking'],
+  risks: ['Risk Tracker','Active Risks & Mitigations'],
+  oto: ['1:1 Support','Coaching & Development'],
+};
+function navigate(view) {
+  state.view = view;
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    el.classList.toggle('active', el.dataset.view===view);
+  });
+  const [title,sub] = TITLES[view]||['',''];
+  document.getElementById('topbar-title').innerHTML = `${title} <span>${sub}</span>`;
+  document.getElementById('topbar-actions').innerHTML = topbarActions(view);
+  const mc = document.getElementById('main-content');
+  mc.style.opacity='0';
+  mc.style.transform='translateY(6px)';
+  requestAnimationFrame(()=>{
+    mc.innerHTML = views[view]();
+    mc.style.transition='opacity 0.22s ease, transform 0.22s ease';
+    mc.style.opacity='1';
+    mc.style.transform='translateY(0)';
+    afterRender(view);
+  });
+}
+function topbarActions(view) {
+  if(view==='risks') return `<button class="btn btn-primary btn-sm" onclick="openAddRisk()">+ Add Risk</button>`;
+  if(view==='projects') return `<button class="btn btn-ghost btn-sm" onclick="openAddProject()">+ Add Project</button><button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Add Task</button>`;
+  if(view==='team') return `<button class="btn btn-ghost btn-sm" onclick="openAddTask()">+ Add Task</button><button class="btn btn-primary btn-sm" onclick="openAddMember()">+ Add Member</button>`;
+  return '';
+}
+
+// ─── VIEW: OVERVIEW ───────────────────────────────────────────────────────────
+const views = {};
+views.overview = function() {
+  const openRisks = state.risks.filter(r=>r.status!=='Closed');
+  const highRisks = openRisks.filter(r=>r.severity==='High');
+  const overloaded = state.team.filter(m=>getCapacity(m.id).pct>=100);
+  const overdueRisks = state.risks.filter(r=>isOverdue(r.due)&&r.status==='Open');
+  const critDeadlines = state.tasks.filter(t=>{
+    const d=daysUntil(t.due); return d<=7 && d>=0 && t.priority==='High';
+  }).sort((a,b)=>new Date(a.due)-new Date(b.due));
+
+  return `<div class="view">
+    ${overdueRisks.length?`<div class="overview-alert" style="margin-bottom:20px">
+      <span class="alert-icon">⚠</span>
+      <div><strong>${overdueRisks.length} risk${overdueRisks.length>1?'s':''} overdue</strong> — immediate action required: ${overdueRisks.map(r=>r.title).join(', ')}</div>
+    </div>`:''}
+
+    <div class="grid-4 mb-16">
+      <div class="kpi-card gold" onclick="navigate('team')" style="cursor:pointer">
+        <div class="kpi-label">Team Members</div>
+        <div class="kpi-value">${state.team.length}</div>
+        <div class="kpi-sub">Across ${state.projects.length} active projects</div>
+      </div>
+      <div class="kpi-card red" onclick="navigate('capacity')" style="cursor:pointer">
+        <div class="kpi-label">Overloaded</div>
+        <div class="kpi-value ${overloaded.length>0?'red':''}">${overloaded.length}</div>
+        <div class="kpi-sub">${overloaded.length?overloaded.map(m=>m.name.split(' ')[0]).join(', ')+' at 100%+':'All within limits'}</div>
+      </div>
+      <div class="kpi-card red" onclick="navigate('risks')" style="cursor:pointer">
+        <div class="kpi-label">Open Risks</div>
+        <div class="kpi-value ${highRisks.length>0?'red':''}">${openRisks.length}</div>
+        <div class="kpi-sub">${highRisks.length} high severity</div>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-label">Critical This Week</div>
+        <div class="kpi-value ${critDeadlines.length>2?'amber':''}">${critDeadlines.length}</div>
+        <div class="kpi-sub">High-priority deadlines ≤7 days</div>
+      </div>
+    </div>
+
+    <div class="grid-2 mb-16">
+      <div class="card">
+        <div class="section-header">
+          <div><div class="section-title" style="font-size:16px">Top Risks</div><div class="section-sub">Requires escalation or action</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="navigate('risks')">View All</button>
+        </div>
+        <div class="risk-summary-row">
+          ${highRisks.slice(0,4).map(r=>`
+            <div class="overview-alert" style="cursor:pointer" onclick="navigate('risks')">
+              <span class="alert-icon">▲</span>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:600;color:var(--t0)">${r.title}</div>
+                <div style="font-size:11px;margin-top:2px;color:var(--red);opacity:0.8">${getProject(r.pid).name} · Owner: ${getMember(r.owner).name.split(' ')[0]}${isOverdue(r.due)?' · <strong>OVERDUE</strong>':''}</div>
+              </div>
+            </div>
+          `).join('')}
+          ${!highRisks.length?'<div class="empty-state">No high-severity risks 🟢</div>':''}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-header">
+          <div><div class="section-title" style="font-size:16px">Critical Deadlines</div><div class="section-sub">High-priority tasks due within 7 days</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="navigate('projects')">View All</button>
+        </div>
+        ${critDeadlines.slice(0,5).map(t=>{
+          const proj=getProject(t.pid); const mem=getMember(t.mid);
+          const d=daysUntil(t.due);
+          return `<div class="overview-deadline">
+            <div class="deadline-dot" style="background:${d<=2?'var(--red)':d<=5?'var(--amber)':'var(--green)'}"></div>
+            <div class="deadline-info">
+              <div class="deadline-title">${t.title}</div>
+              <div class="deadline-meta">${proj.name} · ${mem.name.split(' ')[0]}</div>
+            </div>
+            <div class="deadline-date">${d===0?'Today':d===1?'Tomorrow':d+'d'}</div>
+          </div>`;
+        }).join('')}
+        ${!critDeadlines.length?'<div class="empty-state" style="padding:20px">No critical deadlines this week ✓</div>':''}
+      </div>
+    </div>
+
+    <div class="card mb-16">
+      <div class="section-header">
+        <div><div class="section-title" style="font-size:16px">Team Capacity</div><div class="section-sub">Current weekly allocation</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="navigate('capacity')">Manage</button>
+      </div>
+      ${state.team.map(m=>{
+        const {hours,pct}=getCapacity(m.id);
+        const cc=capColor(pct);
+        return `<div class="cap-summary-item">
+          ${avatar(m,30)}
+          <div class="cap-summary-name">${m.name.split(' ')[0]} ${m.name.split(' ')[1]?m.name.split(' ')[1][0]+'.':''}</div>
+          <div class="cap-summary-bar"><div class="cap-summary-fill ${capBarClass(pct)}" style="width:${Math.min(pct,100)}%"></div></div>
+          <div class="cap-summary-pct text-${cc}" style="font-family:var(--font-m);font-size:12px;width:44px;text-align:right">${pct}%</div>
+          ${pct>=100?`<span class="badge badge-red" style="font-size:10px;margin-left:4px">Overloaded</span>`:pct>=80?`<span class="badge badge-amber" style="font-size:10px;margin-left:4px">At Risk</span>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+
+    ${overloaded.length?`<div class="card" style="border-color:rgba(226,91,91,0.3)">
+      <div class="section-title" style="font-size:15px;margin-bottom:12px;color:var(--red)">⚠ Escalations Required</div>
+      ${overloaded.map(m=>{
+        const {hours,pct}=getCapacity(m.id);
+        return `<div class="escalation-card" style="margin-bottom:8px;cursor:pointer" onclick="navigate('capacity')">
+          ${avatar(m,34)}
+          <div style="flex:1">
+            <div class="escalation-text"><strong>${m.name}</strong> is at <strong>${pct}%</strong> capacity (${hours}h / 40h)</div>
+            <div class="escalation-sub">Immediate reassignment or scope reduction needed</div>
+          </div>
+          <button class="btn btn-danger btn-sm">Resolve →</button>
+        </div>`;
+      }).join('')}
+    </div>`:''}
+  </div>`;
+};
+
+// ─── VIEW: TEAM ───────────────────────────────────────────────────────────────
+views.team = function() {
+  return `<div class="view">
+    <div class="grid-3">
+      ${state.team.map(m=>{
+        const {hours,pct}=getCapacity(m.id);
+        const cc=capColor(pct);
+        const mTasks=state.tasks.filter(t=>t.mid===m.id);
+        const highTasks=mTasks.filter(t=>t.priority==='High').length;
+        const riskTasks=mTasks.filter(t=>t.risk==='red').length;
+        return `<div class="person-card" onclick="openPersonDetail('${m.id}')">
+          <div class="person-header">
+            ${avatar(m)}
+            <div style="flex:1;min-width:0">
+              <div class="person-name">${m.name}</div>
+              <div class="person-role">${m.role}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <button class="card-edit-btn" onclick="event.stopPropagation();openEditMember('${m.id}')" title="Edit member">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              ${riskBadge(riskTasks>0?'red':cc==='amber'?'amber':'green')}
+            </div>
+          </div>
+          <div class="person-cap">
+            <div class="cap-bar-wrap"><div class="cap-bar ${capBarClass(pct)}" style="width:${Math.min(pct,100)}%"></div></div>
+            <div class="cap-pct text-${cc}" style="font-family:var(--font-m);font-size:12px;white-space:nowrap">${pct}%</div>
+          </div>
+          <div class="person-stats">
+            <div class="stat-item"><div class="stat-v">${mTasks.length}</div><div class="stat-l">Tasks</div></div>
+            <div class="stat-item"><div class="stat-v text-red">${highTasks}</div><div class="stat-l">High Pri</div></div>
+            <div class="stat-item"><div class="stat-v">${hours}h</div><div class="stat-l">Allocated</div></div>
+            <div class="stat-item"><div class="stat-v">${state.projects.filter(p=>mTasks.some(t=>t.pid===p.id)).length}</div><div class="stat-l">Projects</div></div>
+          </div>
+          <div class="person-tasks-preview">
+            ${mTasks.slice(0,2).map(t=>`
+              <div class="task-mini">
+                <span class="dot dot-${t.risk}"></span>
+                <span class="task-mini-title">${t.title}</span>
+                <span class="task-mini-badge">${priorityBadge(t.priority)}</span>
+              </div>
+            `).join('')}
+            ${mTasks.length>2?`<div class="show-more">+${mTasks.length-2} more tasks</div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+};
+
+// ─── VIEW: CAPACITY ───────────────────────────────────────────────────────────
+views.capacity = function() {
+  return `<div class="view">
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:12px;color:var(--t2)">💡 <strong style="color:var(--t1)">Drag tasks</strong> between team members to reassign. Changes update capacity immediately.</span>
+      <div style="flex:1"></div>
+      <span class="badge badge-green">● Green ≤80%</span>
+      <span class="badge badge-amber">● Amber 80–99%</span>
+      <span class="badge badge-red">● Red 100%+</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${state.team.map(m=>{
+        const {hours,pct}=getCapacity(m.id);
+        const cc=capColor(pct);
+        const mTasks=state.tasks.filter(t=>t.mid===m.id);
+        return `<div class="cap-row">
+          <div class="cap-row-header">
+            <div class="cap-info">
+              ${avatar(m,38)}
+              <div class="cap-details">
+                <div class="cap-name">${m.name}</div>
+                <div class="cap-role">${m.role}</div>
+              </div>
+              <div style="text-align:right">
+                <div class="cap-pct-label text-${cc}">${pct}%</div>
+                <div class="cap-hours">${hours}h / ${getCapacity(m.id).cap}h</div>
+              </div>
+            </div>
+            <div style="flex:1;max-width:260px;margin-left:20px">
+              <div class="cap-bar-wrap" style="height:10px">
+                <div class="cap-bar ${capBarClass(pct)}" style="width:${Math.min(pct,110)}%"></div>
+              </div>
+              ${pct>=100?`<div style="font-size:10px;color:var(--red);margin-top:4px;font-family:var(--font-m)">⚠ ${pct-100}% over capacity</div>`:
+                pct>=80?`<div style="font-size:10px;color:var(--amber);margin-top:4px;font-family:var(--font-m)">Near limit — review workload</div>`:
+                `<div style="font-size:10px;color:var(--t2);margin-top:4px;font-family:var(--font-m)">${40-hours}h available</div>`}
+            </div>
+          </div>
+          <div class="cap-tasks-area" data-member="${m.id}"
+            ondragover="handleDragOver(event)"
+            ondragleave="handleDragLeave(event)"
+            ondrop="handleDrop(event,'${m.id}')">
+            ${mTasks.map(t=>{
+              const proj=getProject(t.pid);
+              return `<div class="task-chip" draggable="true"
+                data-task="${t.id}"
+                ondragstart="handleDragStart(event,'${t.id}')"
+                ondragend="handleDragEnd(event)">
+                <span class="dot dot-${t.risk}"></span>
+                <span style="color:${proj.color};font-size:10px;font-weight:600">${proj.name.replace('Project ','')}</span>
+                <span style="color:var(--t1)">${t.title.length>32?t.title.substring(0,32)+'…':t.title}</span>
+                <span style="font-family:var(--font-m);font-size:10px;color:var(--t2)">${t.hours}h</span>
+              </div>`;
+            }).join('')}
+            ${!mTasks.length?`<div style="color:var(--t2);font-size:12px;padding:6px">No tasks assigned</div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+};
+
+// ─── VIEW: PROJECTS ───────────────────────────────────────────────────────────
+views.projects = function() {
+  let tasks=[...state.tasks];
+  if(state.taskFilter.project!=='all') tasks=tasks.filter(t=>t.pid===state.taskFilter.project);
+  if(state.taskFilter.priority!=='all') tasks=tasks.filter(t=>t.priority===state.taskFilter.priority);
+  if(state.taskFilter.risk!=='all') tasks=tasks.filter(t=>t.risk===state.taskFilter.risk);
+  if(state.taskFilter.sort==='due') tasks.sort((a,b)=>new Date(a.due)-new Date(b.due));
+  else if(state.taskFilter.sort==='priority') tasks.sort((a,b)=>['High','Medium','Low'].indexOf(a.priority)-['High','Medium','Low'].indexOf(b.priority));
+  else if(state.taskFilter.sort==='risk') tasks.sort((a,b)=>['red','amber','green'].indexOf(a.risk)-['red','amber','green'].indexOf(b.risk));
+  else if(state.taskFilter.sort==='bp') tasks.sort((a,b)=>b.bp-a.bp);
+
+  // conflict detection: multiple high-priority tasks due same day for same person
+  const conflictTasks = new Set();
+  const grouped = {};
+  tasks.filter(t=>t.priority==='High').forEach(t=>{
+    const k=t.mid+t.due; grouped[k]=(grouped[k]||[]); grouped[k].push(t.id);
+  });
+  Object.values(grouped).filter(g=>g.length>1).forEach(g=>g.forEach(id=>conflictTasks.add(id)));
+
+  return `<div class="view">
+    <div style="display:flex;gap:10px;margin-bottom:18px;overflow-x:auto;padding-bottom:4px">
+      ${state.projects.map(p=>{
+        const ptasks=state.tasks.filter(t=>t.pid===p.id);
+        const d=p.deadline?daysUntil(p.deadline):null;
+        return `<div style="
+            flex-shrink:0;width:210px;
+            background:var(--bg3);border:1px solid var(--border);
+            border-top:3px solid ${p.color};border-radius:var(--rl);
+            padding:14px 16px;cursor:pointer;transition:all var(--tr);
+          "
+          onmouseenter="this.style.borderColor='var(--border-md)'"
+          onmouseleave="this.style.borderColor='var(--border)'"
+          onclick="openEditProject('${p.id}')">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:8px">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--t0)">${p.name}</div>
+              <div style="font-size:11px;color:var(--t2);margin-top:1px">${p.desc}</div>
+            </div>
+            <span class="badge ${p.status==='Active'?'badge-green':p.status==='On Hold'?'badge-amber':'badge-gray'}" style="font-size:9px;flex-shrink:0">${p.status}</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+            ${bpPips(p.bp)}
+            ${regBadge(p.reg)}
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11px;color:var(--t2);font-family:var(--font-m)">${ptasks.length} task${ptasks.length!==1?'s':''}</span>
+            <span style="font-size:11px;font-family:var(--font-m);${d!==null&&d<=7&&d>=0?'color:var(--red)':d!==null&&d<=14&&d>=0?'color:var(--amber)':'color:var(--t2)'}">
+              ${p.deadline?fmtDate(p.deadline):'No deadline'}
+            </span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="filter-bar">
+      <select class="filter-select" onchange="setFilter('project',this.value)">
+        <option value="all">All Projects</option>
+        ${state.projects.map(p=>`<option value="${p.id}" ${state.taskFilter.project===p.id?'selected':''}>${p.name}</option>`).join('')}
+      </select>
+      <select class="filter-select" onchange="setFilter('priority',this.value)">
+        <option value="all">All Priorities</option>
+        <option value="High">High Priority</option>
+        <option value="Medium">Medium Priority</option>
+        <option value="Low">Low Priority</option>
+      </select>
+      <select class="filter-select" onchange="setFilter('risk',this.value)">
+        <option value="all">All Risk Levels</option>
+        <option value="red">High Risk</option>
+        <option value="amber">Medium Risk</option>
+        <option value="green">Low Risk</option>
+      </select>
+      <div style="flex:1"></div>
+      <span style="font-size:12px;color:var(--t2)">Sort by:</span>
+      <select class="filter-select" onchange="setFilter('sort',this.value)">
+        <option value="due">Due Date</option>
+        <option value="priority">Priority</option>
+        <option value="risk">Risk</option>
+        <option value="bp">Business Priority</option>
+      </select>
+    </div>
+
+    ${conflictTasks.size?`<div style="background:var(--red-dim);border:1px solid rgba(226,91,91,0.22);border-radius:var(--r);padding:10px 16px;margin-bottom:14px;font-size:12px;color:var(--red)">
+      ⚠ <strong>${conflictTasks.size} conflicting high-priority deadline${conflictTasks.size>1?'s':''}</strong> detected — multiple High tasks due same day for same person
+    </div>`:''}
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th onclick="setFilter('sort','priority')" class="${state.taskFilter.sort==='priority'?'sorted':''}">Priority ↕</th>
+            <th>Project</th>
+            <th onclick="setFilter('sort','bp')" class="${state.taskFilter.sort==='bp'?'sorted':''}">Bus. Priority ↕</th>
+            <th>Regulatory</th>
+            <th onclick="setFilter('sort','due')" class="${state.taskFilter.sort==='due'?'sorted':''}">Due Date ↕</th>
+            <th>Hours</th>
+            <th onclick="setFilter('sort','risk')" class="${state.taskFilter.sort==='risk'?'sorted':''}">Risk ↕</th>
+            <th>Assignee</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tasks.map(t=>{
+            const proj=getProject(t.pid); const mem=getMember(t.mid);
+            const d=daysUntil(t.due); const conflict=conflictTasks.has(t.id);
+            return `<tr>
+              <td>
+                ${t.title}${conflict?`<span class="conflict-flag">⚑ Conflict</span>`:''}
+              </td>
+              <td>${priorityBadge(t.priority)}</td>
+              <td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${proj.color};display:inline-block"></span><span style="color:var(--t1);font-size:12px">${proj.name}</span></span></td>
+              <td>${bpPips(t.bp)}</td>
+              <td>${regBadge(t.reg)}</td>
+              <td style="font-family:var(--font-m);font-size:12px;${d<=3&&d>=0?'color:var(--red)':d<=7&&d>=0?'color:var(--amber)':isOverdue(t.due)?'color:var(--red)':''}">
+                ${fmtDate(t.due)}${isOverdue(t.due)?'<span style="font-size:9px;margin-left:4px;color:var(--red);font-weight:700">OVERDUE</span>':''}
+              </td>
+              <td style="font-family:var(--font-m)">${t.hours}h</td>
+              <td>${riskBadge(t.risk)}</td>
+              <td><span style="display:inline-flex;align-items:center;gap:5px">${avatar(mem,22)}<span style="font-size:12px">${mem.name.split(' ')[0]}</span></span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="openEditTask('${t.id}')">Edit</button></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--t2);text-align:right">${tasks.length} task${tasks.length!==1?'s':''} shown</div>
+  </div>`;
+};
+
+// ─── VIEW: RISKS ──────────────────────────────────────────────────────────────
+views.risks = function() {
+  let risks=[...state.risks];
+  if(state.riskFilter!=='all') risks=risks.filter(r=>r.severity.toLowerCase()===state.riskFilter);
+  risks.sort((a,b)=>{
+    const so={'High':0,'Medium':1,'Low':2};
+    if(so[a.severity]!==so[b.severity]) return so[a.severity]-so[b.severity];
+    return new Date(a.due)-new Date(b.due);
+  });
+
+  const open=state.risks.filter(r=>r.status==='Open').length;
+  const high=state.risks.filter(r=>r.severity==='High').length;
+  const overdue=state.risks.filter(r=>isOverdue(r.due)&&r.status==='Open').length;
+
+  return `<div class="view">
+    <div class="grid-4 mb-16" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kpi-card red"><div class="kpi-label">Open Risks</div><div class="kpi-value">${open}</div></div>
+      <div class="kpi-card red"><div class="kpi-label">High Severity</div><div class="kpi-value red">${high}</div></div>
+      <div class="kpi-card amber"><div class="kpi-label">Overdue</div><div class="kpi-value ${overdue>0?'red':''}">${overdue}</div></div>
+      <div class="kpi-card gold"><div class="kpi-label">Monitoring</div><div class="kpi-value">${state.risks.filter(r=>r.status==='Monitoring').length}</div></div>
+    </div>
+
+    <div class="filter-bar mb-16">
+      <select class="filter-select" onchange="state.riskFilter=this.value;navigate('risks')">
+        <option value="all">All Severities</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+      <div style="flex:1"></div>
+      <span style="font-size:12px;color:var(--t2)">${risks.length} risk${risks.length!==1?'s':''} shown</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${risks.map(r=>{
+        const proj=getProject(r.pid); const owner=getMember(r.owner);
+        const aged=daysAgo(r.identified);
+        const od=isOverdue(r.due);
+        return `<div class="risk-card risk-${r.severity.toLowerCase()} ${od&&r.status==='Open'?'overdue':''}" onclick="openEditRisk('${r.id}')">
+          <div class="risk-header">
+            <div class="risk-title">${r.title}</div>
+            ${severityBadge(r.severity)}
+            <span class="badge ${r.status==='Open'?'badge-red':r.status==='Monitoring'?'badge-amber':'badge-green'}">${r.status}</span>
+          </div>
+          <div class="risk-meta">
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--t1)"><span style="width:6px;height:6px;border-radius:50%;background:${proj.color};display:inline-block"></span>${proj.name}</span>
+            <span style="font-size:12px;color:var(--t1)">Owner: <strong>${owner.name}</strong></span>
+            <span class="risk-aging ${aged>14?'old':(aged>7?'':'')}" >Identified ${aged}d ago</span>
+            ${od&&r.status==='Open'?`<span class="badge badge-red" style="font-size:10px;animation:pulse 1.5s infinite">⚠ OVERDUE</span>`:`<span style="font-size:11px;color:var(--t2);font-family:var(--font-m)">Due ${fmtDate(r.due)}</span>`}
+          </div>
+          <div class="risk-mitigation">
+            <strong style="color:var(--t1);font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Mitigation:</strong> ${r.mitigation}
+          </div>
+          ${r.notes?`<div style="font-size:11px;color:var(--t2);margin-top:6px;font-style:italic">${r.notes}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+};
+
+// ─── VIEW: 1:1 ────────────────────────────────────────────────────────────────
+views.oto = function() {
+  const m = getMember(state.selectedPerson);
+  return `<div class="view">
+    <div class="person-selector">
+      ${state.team.map(p=>`
+        <div class="person-pill ${p.id===state.selectedPerson?'active':''}" onclick="selectPerson('${p.id}')">
+          ${avatar(p,24)}
+          <span>${p.name.split(' ')[0]}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;padding:18px 20px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl)">
+      ${avatar(m,48)}
+      <div style="flex:1">
+        <div style="font-family:var(--font-d);font-size:22px;font-weight:600;color:var(--t0)">${m.name}</div>
+        <div style="font-size:13px;color:var(--t2);margin-top:2px">${m.role}</div>
+      </div>
+      <div style="text-align:right">
+        ${(()=>{const {hours,pct}=getCapacity(m.id);const cc=capColor(pct);return `<div style="font-family:var(--font-m);font-size:20px;font-weight:500" class="text-${cc}">${pct}%</div><div style="font-size:11px;color:var(--t2)">Capacity (${hours}h)</div>`})()}
+      </div>
+    </div>
+
+    <div class="one-grid">
+      <div class="card one-full">
+        <div class="card-title"><span>Leader Notes</span><button class="btn btn-ghost btn-sm" onclick="saveNotes('${m.id}')">Save</button></div>
+        <textarea class="notes-area" id="notes-${m.id}" placeholder="Notes about this team member...">${m.notes}</textarea>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>Development Goals</span><button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="addGoal('${m.id}')">+ Goal</button></div>
+        <ul class="goals-list">
+          ${m.goals.map((g,i)=>`<li onclick="editGoalInline(this,'${m.id}',${i})" style="cursor:text">${g}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>Strengths & Growth Areas</span></div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px">Strengths</div>
+          <div class="tag-list">${m.strengths.map(s=>`<span class="tag tag-strength">${s}</span>`).join('')}</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px">Growth Areas</div>
+          <div class="tag-list">${m.growth.map(g=>`<span class="tag tag-growth">${g}</span>`).join('')}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>Coaching Log</span><button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="addCoachingEntry('${m.id}')">+ Entry</button></div>
+        ${m.coachingLog.length?m.coachingLog.map(e=>`
+          <div class="log-entry">
+            <div class="log-date">${fmtDate(e.date)}</div>
+            <div class="log-text">${e.note}</div>
+          </div>
+        `).join(''):`<div style="color:var(--t2);font-size:12px;padding:8px 0">No coaching entries yet.</div>`}
+      </div>
+
+      <div class="card one-full">
+        <div class="card-title"><span>Decision Log</span><button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="addDecision('${m.id}')">+ Decision</button></div>
+        ${m.decisionLog.length?m.decisionLog.map(e=>`
+          <div class="decision-entry">
+            <div class="log-date">${fmtDate(e.date)}</div>
+            <div class="log-text">${e.decision}</div>
+            <div class="decision-rationale">Rationale: ${e.rationale}</div>
+          </div>
+        `).join(''):`<div style="color:var(--t2);font-size:12px;padding:8px 0">No decisions logged yet.</div>`}
+      </div>
+    </div>
+  </div>`;
+};
+
+// ─── FILTER ───────────────────────────────────────────────────────────────────
+function setFilter(key, val) {
+  state.taskFilter[key] = val;
+  navigate('projects');
+}
+
+// ─── DRAG & DROP ─────────────────────────────────────────────────────────────
+function handleDragStart(e, taskId) {
+  state.dragTask = taskId;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function handleDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.cap-tasks-area').forEach(el=>el.classList.remove('drag-over'));
+}
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+function handleDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+function handleDrop(e, memberId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(!state.dragTask) return;
+  const task = state.tasks.find(t=>t.id===state.dragTask);
+  if(!task || task.mid===memberId) return;
+  const from = getMember(task.mid);
+  const to = getMember(memberId);
+  task.mid = memberId;
+  state.dragTask = null;
+  showToast(`"${task.title.substring(0,30)}…" reassigned to ${to.name}`, 'success');
+  navigate('capacity');
+}
+
+// ─── PERSON DETAIL MODAL ─────────────────────────────────────────────────────
+function openPersonDetail(mid) {
+  const m = getMember(mid);
+  const {hours,pct} = getCapacity(mid);
+  const mTasks = state.tasks.filter(t=>t.mid===mid);
+  const cc = capColor(pct);
+  openModal(
+    `<div style="display:flex;align-items:center;gap:14px">${avatar(m,44)}<div><h2 style="margin-bottom:2px">${m.name}</h2><p>${m.role} · ${pct}% capacity</p></div></div>`,
+    `<div class="cap-bar-wrap" style="height:8px;margin-bottom:16px"><div class="cap-bar ${capBarClass(pct)}" style="width:${Math.min(pct,100)}%"></div></div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:16px;font-family:var(--font-m)">${hours}h allocated / ${getCapacity(mid).cap}h weekly capacity</div>
+    <div style="font-size:12px;font-weight:600;color:var(--t1);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">Active Tasks</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${mTasks.map(t=>{const proj=getProject(t.pid);return `
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border-radius:var(--rs)">
+          <span class="dot dot-${t.risk}"></span>
+          <span style="flex:1;font-size:13px;color:var(--t0)">${t.title}</span>
+          <span style="font-size:10px;color:${proj.color};font-weight:600">${proj.name.replace('Project ','')}</span>
+          ${priorityBadge(t.priority)}
+          <span style="font-family:var(--font-m);font-size:11px;color:var(--t2)">${t.hours}h</span>
+        </div>
+      `}).join('')}
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Close</button>
+     <button class="btn btn-primary" onclick="closeModal();state.selectedPerson='${mid}';navigate('oto')">Open 1:1 →</button>`
+  );
+}
+
+// ─── MEMBER MODALS ───────────────────────────────────────────────────────────
+const AVATAR_COLORS = ['#4f8ef7','#c9a84b','#3ecf8e','#e25b5b','#a78bfa','#f6a623','#f472b6','#22d3ee'];
+
+function memberModalBody(m) {
+  const name      = m?.name     || '';
+  const initials  = m?.initials || '';
+  const role      = m?.role     || '';
+  const capacity  = m?.weeklyCapacity || 40;
+  const color     = m?.color    || AVATAR_COLORS[0];
+  const strengths = (m?.strengths || []).join(', ');
+  const growth    = (m?.growth   || []).join(', ');
+
+  return `
+    <div class="form-grid">
+      <div class="form-row"><label>Full Name</label>
+        <input class="form-input" id="em-name" value="${name}" placeholder="Jane Smith" oninput="autoInitials()"/>
+      </div>
+      <div class="form-row"><label>Initials</label>
+        <input class="form-input" id="em-initials" value="${initials}" placeholder="JS" maxlength="3"/>
+      </div>
+    </div>
+    <div class="form-row"><label>Role / Title</label>
+      <input class="form-input" id="em-role" value="${role}" placeholder="Senior Engineer"/>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Weekly Capacity (hours)</label>
+        <input class="form-input" id="em-cap" type="number" min="1" max="80" value="${capacity}"/>
+      </div>
+      <div class="form-row"><label>Avatar Preview</label>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+          <div id="em-avatar-preview" style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;background:linear-gradient(135deg,${color}cc,${color}66)">${initials||'?'}</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-row"><label>Avatar Color</label>
+      <div class="color-swatches" id="em-swatches">
+        ${AVATAR_COLORS.map(c=>`
+          <div class="color-swatch ${c===color?'selected':''}"
+            style="background:${c}"
+            data-color="${c}"
+            onclick="selectAvatarColor('${c}')">
+          </div>
+        `).join('')}
+      </div>
+      <input type="hidden" id="em-color" value="${color}"/>
+    </div>
+    <div class="divider"></div>
+    <div class="form-row"><label>Strengths <span style="font-weight:400;text-transform:none;letter-spacing:0">(comma-separated)</span></label>
+      <input class="form-input" id="em-strengths" value="${strengths}" placeholder="Technical depth, Communication"/>
+    </div>
+    <div class="form-row"><label>Growth Areas <span style="font-weight:400;text-transform:none;letter-spacing:0">(comma-separated)</span></label>
+      <input class="form-input" id="em-growth" value="${growth}" placeholder="Delegation, Estimation"/>
+    </div>`;
+}
+
+function autoInitials() {
+  const name = document.getElementById('em-name').value.trim();
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    document.getElementById('em-initials').value = (parts[0][0]+parts[1][0]).toUpperCase();
+  } else if (parts.length === 1) {
+    document.getElementById('em-initials').value = parts[0].slice(0,2).toUpperCase();
+  }
+  updateAvatarPreview();
+}
+
+function selectAvatarColor(color) {
+  document.getElementById('em-color').value = color;
+  document.querySelectorAll('.color-swatch').forEach(el=>{
+    el.classList.toggle('selected', el.dataset.color===color);
+  });
+  updateAvatarPreview();
+}
+
+function updateAvatarPreview() {
+  const preview = document.getElementById('em-avatar-preview');
+  if (!preview) return;
+  const initials = document.getElementById('em-initials').value || '?';
+  const color    = document.getElementById('em-color').value || AVATAR_COLORS[0];
+  preview.textContent = initials;
+  preview.style.background = `linear-gradient(135deg,${color}cc,${color}66)`;
+}
+
+function openAddMember() {
+  openModal(
+    `<h2>Add Team Member</h2><p>New member will appear across all views</p>`,
+    memberModalBody(null),
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveNewMember()">Add Member</button>`
+  );
+  // live preview on initials change
+  document.getElementById('em-initials').addEventListener('input', updateAvatarPreview);
+}
+
+function saveNewMember() {
+  const name = document.getElementById('em-name').value.trim();
+  if (!name) { showToast('Please enter a name'); return; }
+  const newMember = {
+    id: 'M' + Date.now(),
+    name,
+    initials: document.getElementById('em-initials').value.trim().toUpperCase() || name.slice(0,2).toUpperCase(),
+    role: document.getElementById('em-role').value.trim() || 'Team Member',
+    color: document.getElementById('em-color').value || AVATAR_COLORS[0],
+    weeklyCapacity: parseInt(document.getElementById('em-cap').value) || 40,
+    strengths: document.getElementById('em-strengths').value.split(',').map(s=>s.trim()).filter(Boolean),
+    growth:    document.getElementById('em-growth').value.split(',').map(s=>s.trim()).filter(Boolean),
+    notes: '',
+    goals: [],
+    coachingLog: [],
+    decisionLog: [],
+  };
+  state.team.push(newMember);
+  closeModal();
+  showToast(`${newMember.name} added to team`, 'success');
+  navigate('team');
+}
+
+function openEditMember(mid) {
+  const m = getMember(mid);
+  openModal(
+    `<div style="display:flex;align-items:center;gap:12px">${avatar(m,38)}<div><h2>${m.name}</h2><p>${m.role}</p></div></div>`,
+    memberModalBody(m),
+    `<button class="btn btn-danger btn-sm" onclick="confirmDeleteMember('${mid}')">Remove</button>
+     <div style="flex:1"></div>
+     <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveEditMember('${mid}')">Save Changes</button>`
+  );
+  document.getElementById('em-initials').addEventListener('input', updateAvatarPreview);
+}
+
+function saveEditMember(mid) {
+  const m = state.team.find(x=>x.id===mid);
+  if (!m) return;
+  const name = document.getElementById('em-name').value.trim();
+  if (!name) { showToast('Name cannot be empty'); return; }
+  m.name      = name;
+  m.initials  = document.getElementById('em-initials').value.trim().toUpperCase() || name.slice(0,2).toUpperCase();
+  m.role      = document.getElementById('em-role').value.trim() || m.role;
+  m.color     = document.getElementById('em-color').value || m.color;
+  m.weeklyCapacity = parseInt(document.getElementById('em-cap').value) || 40;
+  m.strengths = document.getElementById('em-strengths').value.split(',').map(s=>s.trim()).filter(Boolean);
+  m.growth    = document.getElementById('em-growth').value.split(',').map(s=>s.trim()).filter(Boolean);
+  closeModal();
+  showToast(`${m.name} updated`, 'success');
+  navigate('team');
+}
+
+function confirmDeleteMember(mid) {
+  const m = getMember(mid);
+  const taskCount = state.tasks.filter(t=>t.mid===mid).length;
+  openModal(
+    `<h2>Remove ${m.name}?</h2>`,
+    `<div style="background:var(--red-dim);border:1px solid rgba(226,91,91,0.22);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--red);margin-bottom:12px">
+       ⚠ This cannot be undone.
+     </div>
+     <div style="font-size:13px;color:var(--t1)">
+       ${taskCount>0
+         ? `<strong style="color:var(--t0)">${taskCount} task${taskCount>1?'s':''}</strong> are currently assigned to ${m.name}.
+            <br><br><label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <input type="checkbox" id="delete-tasks-check" style="accent-color:var(--red)"/>
+              <span>Also delete these tasks</span>
+            </label>`
+         : `${m.name} has no assigned tasks.`}
+     </div>`,
+    `<button class="btn btn-ghost" onclick="openEditMember('${mid}')">← Back</button>
+     <div style="flex:1"></div>
+     <button class="btn btn-danger" onclick="deleteMember('${mid}')">Remove Member</button>`
+  );
+}
+
+function deleteMember(mid) {
+  const m = getMember(mid);
+  const deleteTasks = document.getElementById('delete-tasks-check')?.checked;
+  if (deleteTasks) {
+    state.tasks = state.tasks.filter(t=>t.mid!==mid);
+  }
+  state.team = state.team.filter(x=>x.id!==mid);
+  if (state.selectedPerson===mid) state.selectedPerson = state.team[0]?.id || '';
+  closeModal();
+  showToast(`${m.name} removed from team`);
+  navigate('team');
+}
+
+// ─── PROJECT MODALS ──────────────────────────────────────────────────────────
+const PROJECT_COLORS = ['#e25b5b','#c9a84b','#4f8ef7','#a78bfa','#3ecf8e','#f6a623','#f472b6','#22d3ee'];
+
+function projectModalBody(p) {
+  const name     = p?.name     || '';
+  const desc     = p?.desc     || '';
+  const bp       = p?.bp       || 3;
+  const reg      = p?.reg      || 'Medium';
+  const status   = p?.status   || 'Active';
+  const deadline = p?.deadline || '';
+  const color    = p?.color    || PROJECT_COLORS[0];
+  return `
+    <div class="form-grid">
+      <div class="form-row"><label>Project Name</label>
+        <input class="form-input" id="pm-name" value="${name}" placeholder="Project Atlas"/>
+      </div>
+      <div class="form-row"><label>Short Description</label>
+        <input class="form-input" id="pm-desc" value="${desc}" placeholder="e.g. Customer Portal"/>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Status</label>
+        <select class="form-select" id="pm-status">
+          <option ${status==='Active'?'selected':''}>Active</option>
+          <option ${status==='On Hold'?'selected':''}>On Hold</option>
+          <option ${status==='Completed'?'selected':''}>Completed</option>
+          <option ${status==='Cancelled'?'selected':''}>Cancelled</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Deadline</label>
+        <input class="form-input" id="pm-deadline" type="date" value="${deadline}"/>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Business Priority (1–5)</label>
+        <select class="form-select" id="pm-bp">
+          ${[1,2,3,4,5].map(n=>`<option value="${n}" ${bp===n?'selected':''}>${n}${n===5?' — Critical':n===4?' — High':n===3?' — Medium':n===2?' — Low':' — Minimal'}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row"><label>Regulatory Impact</label>
+        <select class="form-select" id="pm-reg">
+          <option ${reg==='High'?'selected':''}>High</option>
+          <option ${reg==='Medium'?'selected':''}>Medium</option>
+          <option ${reg==='Low'?'selected':''}>Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row"><label>Project Color</label>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:4px">
+        <div id="pm-color-preview" style="width:32px;height:32px;border-radius:var(--rs);background:${color};flex-shrink:0;transition:background var(--tr)"></div>
+        <div class="color-swatches" id="pm-swatches">
+          ${PROJECT_COLORS.map(c=>`
+            <div class="color-swatch ${c===color?'selected':''}"
+              style="background:${c};border-radius:var(--rs);width:24px;height:24px"
+              data-color="${c}"
+              onclick="selectProjectColor('${c}')">
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <input type="hidden" id="pm-color" value="${color}"/>
+    </div>`;
+}
+
+function selectProjectColor(color) {
+  document.getElementById('pm-color').value = color;
+  document.getElementById('pm-color-preview').style.background = color;
+  document.querySelectorAll('#pm-swatches .color-swatch').forEach(el=>{
+    el.classList.toggle('selected', el.dataset.color===color);
+  });
+}
+
+function openAddProject() {
+  openModal(
+    `<h2>Add Project</h2><p>New project will be available for task assignment</p>`,
+    projectModalBody(null),
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveNewProject()">Add Project</button>`
+  );
+}
+
+function saveNewProject() {
+  const name = document.getElementById('pm-name').value.trim();
+  if (!name) { showToast('Please enter a project name'); return; }
+  const newProject = {
+    id: 'P' + Date.now(),
+    name,
+    desc:     document.getElementById('pm-desc').value.trim(),
+    bp:       parseInt(document.getElementById('pm-bp').value) || 3,
+    reg:      document.getElementById('pm-reg').value,
+    status:   document.getElementById('pm-status').value,
+    deadline: document.getElementById('pm-deadline').value,
+    color:    document.getElementById('pm-color').value || PROJECT_COLORS[0],
+  };
+  state.projects.push(newProject);
+  closeModal();
+  showToast(`${newProject.name} added`, 'success');
+  navigate('projects');
+}
+
+function openEditProject(pid) {
+  const p = getProject(pid);
+  const ptasks = state.tasks.filter(t=>t.pid===pid);
+  openModal(
+    `<div style="display:flex;align-items:center;gap:12px">
+       <div style="width:16px;height:38px;border-radius:3px;background:${p.color};flex-shrink:0"></div>
+       <div><h2>${p.name}</h2><p>${p.desc} · ${ptasks.length} task${ptasks.length!==1?'s':''}</p></div>
+     </div>`,
+    projectModalBody(p),
+    `<button class="btn btn-danger btn-sm" onclick="confirmDeleteProject('${pid}')">Delete</button>
+     <div style="flex:1"></div>
+     <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveEditProject('${pid}')">Save Changes</button>`
+  );
+}
+
+function saveEditProject(pid) {
+  const p = state.projects.find(x=>x.id===pid);
+  if (!p) return;
+  const name = document.getElementById('pm-name').value.trim();
+  if (!name) { showToast('Project name cannot be empty'); return; }
+  p.name     = name;
+  p.desc     = document.getElementById('pm-desc').value.trim();
+  p.bp       = parseInt(document.getElementById('pm-bp').value) || p.bp;
+  p.reg      = document.getElementById('pm-reg').value;
+  p.status   = document.getElementById('pm-status').value;
+  p.deadline = document.getElementById('pm-deadline').value;
+  p.color    = document.getElementById('pm-color').value || p.color;
+  closeModal();
+  showToast(`${p.name} updated`, 'success');
+  navigate('projects');
+}
+
+function confirmDeleteProject(pid) {
+  const p = getProject(pid);
+  const taskCount = state.tasks.filter(t=>t.pid===pid).length;
+  const riskCount = state.risks.filter(r=>r.pid===pid).length;
+  openModal(
+    `<h2>Delete ${p.name}?</h2>`,
+    `<div style="background:var(--red-dim);border:1px solid rgba(226,91,91,0.22);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--red);margin-bottom:14px">
+       ⚠ This cannot be undone.
+     </div>
+     <div style="font-size:13px;color:var(--t1);display:flex;flex-direction:column;gap:10px">
+       ${taskCount>0?`<label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+         <input type="checkbox" id="del-proj-tasks" style="accent-color:var(--red)"/>
+         <span>Also delete <strong style="color:var(--t0)">${taskCount} task${taskCount!==1?'s':''}</strong> assigned to this project</span>
+       </label>`:'<div style="color:var(--t2)">No tasks assigned to this project.</div>'}
+       ${riskCount>0?`<label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+         <input type="checkbox" id="del-proj-risks" style="accent-color:var(--red)"/>
+         <span>Also delete <strong style="color:var(--t0)">${riskCount} risk${riskCount!==1?'s':''}</strong> logged against this project</span>
+       </label>`:''}
+     </div>`,
+    `<button class="btn btn-ghost" onclick="openEditProject('${pid}')">← Back</button>
+     <div style="flex:1"></div>
+     <button class="btn btn-danger" onclick="deleteProject('${pid}')">Delete Project</button>`
+  );
+}
+
+function deleteProject(pid) {
+  const p = getProject(pid);
+  if (document.getElementById('del-proj-tasks')?.checked) {
+    state.tasks = state.tasks.filter(t=>t.pid!==pid);
+  }
+  if (document.getElementById('del-proj-risks')?.checked) {
+    state.risks = state.risks.filter(r=>r.pid!==pid);
+  }
+  state.projects = state.projects.filter(x=>x.id!==pid);
+  if (state.taskFilter.project===pid) state.taskFilter.project='all';
+  document.getElementById('risk-badge').textContent = state.risks.filter(r=>r.status!=='Closed').length;
+  closeModal();
+  showToast(`${p.name} deleted`);
+  navigate('projects');
+}
+
+// ─── TASK MODAL ───────────────────────────────────────────────────────────────
+function openAddTask() {
+  openModal(
+    `<h2>Add New Task</h2><p>Assign a task to a team member</p>`,
+    `<div class="form-row"><label>Task Title</label><input class="form-input" id="m-title" placeholder="Enter task title"/></div>
+     <div class="form-grid">
+       <div class="form-row"><label>Assignee</label><select class="form-select" id="m-mid">${state.team.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}</select></div>
+       <div class="form-row"><label>Project</label><select class="form-select" id="m-pid">${state.projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
+     </div>
+     <div class="form-grid">
+       <div class="form-row"><label>Priority</label><select class="form-select" id="m-priority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+       <div class="form-row"><label>Risk Status</label><select class="form-select" id="m-risk"><option value="red">High Risk</option><option value="amber" selected>Medium Risk</option><option value="green">Low Risk</option></select></div>
+     </div>
+     <div class="form-grid">
+       <div class="form-row"><label>Due Date</label><input class="form-input" id="m-due" type="date"/></div>
+       <div class="form-row"><label>Estimated Hours</label><input class="form-input" id="m-hours" type="number" min="1" max="40" value="8"/></div>
+     </div>
+     <div class="form-grid">
+       <div class="form-row"><label>Business Priority (1-5)</label><select class="form-select" id="m-bp"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option></select></div>
+       <div class="form-row"><label>Regulatory Impact</label><select class="form-select" id="m-reg"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+     </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveNewTask()">Add Task</button>`
+  );
+}
+function saveNewTask() {
+  const title = document.getElementById('m-title').value.trim();
+  if(!title) { showToast('Please enter a task title'); return; }
+  const newTask = {
+    id: 'T'+Date.now(),
+    title,
+    mid: document.getElementById('m-mid').value,
+    pid: document.getElementById('m-pid').value,
+    priority: document.getElementById('m-priority').value,
+    risk: document.getElementById('m-risk').value,
+    due: document.getElementById('m-due').value,
+    hours: parseInt(document.getElementById('m-hours').value)||8,
+    bp: parseInt(document.getElementById('m-bp').value)||3,
+    reg: document.getElementById('m-reg').value,
+    status: 'Pending',
+  };
+  state.tasks.push(newTask);
+  closeModal();
+  showToast('Task added successfully', 'success');
+  navigate(state.view);
+}
+function openEditTask(tid) {
+  const t = state.tasks.find(x=>x.id===tid);
+  if(!t) return;
+  openModal(
+    `<h2>Edit Task</h2><p>${t.title}</p>`,
+    `<div class="form-row"><label>Task Title</label><input class="form-input" id="m-title" value="${t.title}"/></div>
+     <div class="form-grid">
+       <div class="form-row"><label>Assignee</label><select class="form-select" id="m-mid">${state.team.map(m=>`<option value="${m.id}" ${m.id===t.mid?'selected':''}>${m.name}</option>`).join('')}</select></div>
+       <div class="form-row"><label>Project</label><select class="form-select" id="m-pid">${state.projects.map(p=>`<option value="${p.id}" ${p.id===t.pid?'selected':''}>${p.name}</option>`).join('')}</select></div>
+     </div>
+     <div class="form-grid">
+       <div class="form-row"><label>Priority</label><select class="form-select" id="m-priority"><option ${t.priority==='High'?'selected':''}>High</option><option ${t.priority==='Medium'?'selected':''}>Medium</option><option ${t.priority==='Low'?'selected':''}>Low</option></select></div>
+       <div class="form-row"><label>Risk Status</label><select class="form-select" id="m-risk"><option value="red" ${t.risk==='red'?'selected':''}>High Risk</option><option value="amber" ${t.risk==='amber'?'selected':''}>Medium Risk</option><option value="green" ${t.risk==='green'?'selected':''}>Low Risk</option></select></div>
+     </div>
+     <div class="form-grid">
+       <div class="form-row"><label>Due Date</label><input class="form-input" id="m-due" type="date" value="${t.due}"/></div>
+       <div class="form-row"><label>Estimated Hours</label><input class="form-input" id="m-hours" type="number" min="1" max="40" value="${t.hours}"/></div>
+     </div>`,
+    `<button class="btn btn-danger btn-sm" onclick="deleteTask('${tid}')">Delete</button>
+     <div style="flex:1"></div>
+     <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="updateTask('${tid}')">Save Changes</button>`
+  );
+}
+function updateTask(tid) {
+  const t = state.tasks.find(x=>x.id===tid);
+  if(!t) return;
+  t.title = document.getElementById('m-title').value.trim()||t.title;
+  t.mid = document.getElementById('m-mid').value;
+  t.pid = document.getElementById('m-pid').value;
+  t.priority = document.getElementById('m-priority').value;
+  t.risk = document.getElementById('m-risk').value;
+  t.due = document.getElementById('m-due').value;
+  t.hours = parseInt(document.getElementById('m-hours').value)||t.hours;
+  closeModal();
+  showToast('Task updated', 'success');
+  navigate(state.view);
+}
+function deleteTask(tid) {
+  state.tasks = state.tasks.filter(t=>t.id!==tid);
+  closeModal();
+  showToast('Task deleted');
+  navigate(state.view);
+}
+
+// ─── RISK MODAL ───────────────────────────────────────────────────────────────
+function openAddRisk() {
+  openModal(
+    `<h2>Log New Risk</h2><p>Document a project risk and mitigation plan</p>`,
+    `<div class="form-row"><label>Risk Title</label><input class="form-input" id="r-title" placeholder="Describe the risk"/></div>
+     <div class="form-grid">
+       <div class="form-row"><label>Project</label><select class="form-select" id="r-pid">${state.projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
+       <div class="form-row"><label>Risk Owner</label><select class="form-select" id="r-owner">${state.team.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}</select></div>
+     </div>
+     <div class="form-grid">
+       <div class="form-row"><label>Severity</label><select class="form-select" id="r-sev"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+       <div class="form-row"><label>Due Date</label><input class="form-input" id="r-due" type="date"/></div>
+     </div>
+     <div class="form-row"><label>Mitigation Plan</label><textarea class="form-textarea" id="r-mit" placeholder="Describe the mitigation approach..."></textarea></div>
+     <div class="form-row"><label>Notes</label><textarea class="form-textarea" id="r-notes" placeholder="Additional context..."></textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveNewRisk()">Log Risk</button>`
+  );
+}
+function saveNewRisk() {
+  const title = document.getElementById('r-title').value.trim();
+  if(!title) { showToast('Please enter a risk title'); return; }
+  state.risks.push({
+    id: 'R'+Date.now(),
+    title,
+    pid: document.getElementById('r-pid').value,
+    owner: document.getElementById('r-owner').value,
+    severity: document.getElementById('r-sev').value,
+    status: 'Open',
+    mitigation: document.getElementById('r-mit').value||'Under review',
+    identified: new Date().toISOString().split('T')[0],
+    due: document.getElementById('r-due').value,
+    notes: document.getElementById('r-notes').value,
+  });
+  document.getElementById('risk-badge').textContent = state.risks.filter(r=>r.status!=='Closed').length;
+  closeModal();
+  showToast('Risk logged', 'success');
+  navigate('risks');
+}
+function openEditRisk(rid) {
+  const r = state.risks.find(x=>x.id===rid);
+  if(!r) return;
+  openModal(
+    `<h2>Edit Risk</h2><p>${r.title}</p>`,
+    `<div class="form-row"><label>Risk Title</label><input class="form-input" id="r-title" value="${r.title}"/></div>
+     <div class="form-grid">
+       <div class="form-row"><label>Severity</label><select class="form-select" id="r-sev"><option ${r.severity==='High'?'selected':''}>High</option><option ${r.severity==='Medium'?'selected':''}>Medium</option><option ${r.severity==='Low'?'selected':''}>Low</option></select></div>
+       <div class="form-row"><label>Status</label><select class="form-select" id="r-status"><option ${r.status==='Open'?'selected':''}>Open</option><option ${r.status==='Monitoring'?'selected':''}>Monitoring</option><option ${r.status==='Closed'?'selected':''}>Closed</option></select></div>
+     </div>
+     <div class="form-row"><label>Mitigation Plan</label><textarea class="form-textarea" id="r-mit">${r.mitigation}</textarea></div>
+     <div class="form-row"><label>Notes</label><textarea class="form-textarea" id="r-notes">${r.notes||''}</textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="updateRisk('${rid}')">Save</button>`
+  );
+}
+function updateRisk(rid) {
+  const r = state.risks.find(x=>x.id===rid);
+  if(!r) return;
+  r.title = document.getElementById('r-title').value.trim()||r.title;
+  r.severity = document.getElementById('r-sev').value;
+  r.status = document.getElementById('r-status').value;
+  r.mitigation = document.getElementById('r-mit').value;
+  r.notes = document.getElementById('r-notes').value;
+  document.getElementById('risk-badge').textContent = state.risks.filter(r=>r.status!=='Closed').length;
+  closeModal();
+  showToast('Risk updated', 'success');
+  navigate('risks');
+}
+
+// ─── 1:1 ACTIONS ─────────────────────────────────────────────────────────────
+function selectPerson(mid) {
+  state.selectedPerson = mid;
+  navigate('oto');
+}
+function saveNotes(mid) {
+  const m = state.team.find(x=>x.id===mid);
+  if(m) { m.notes = document.getElementById(`notes-${mid}`).value; showToast('Notes saved','success'); }
+}
+function addGoal(mid) {
+  const m = state.team.find(x=>x.id===mid);
+  openModal(
+    `<h2>Add Development Goal</h2><p>${m.name}</p>`,
+    `<div class="form-row"><label>Goal</label><input class="form-input" id="g-goal" placeholder="Describe the goal..."/></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveGoal('${mid}')">Add Goal</button>`
+  );
+}
+function saveGoal(mid) {
+  const g = document.getElementById('g-goal').value.trim();
+  if(!g) return;
+  const m = state.team.find(x=>x.id===mid);
+  m.goals.push(g);
+  closeModal();
+  showToast('Goal added','success');
+  navigate('oto');
+}
+function addCoachingEntry(mid) {
+  openModal(
+    `<h2>Add Coaching Note</h2>`,
+    `<div class="form-row"><label>Note</label><textarea class="form-textarea" id="c-note" placeholder="What was discussed or observed?"></textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveCoachingEntry('${mid}')">Add Entry</button>`
+  );
+}
+function saveCoachingEntry(mid) {
+  const note = document.getElementById('c-note').value.trim();
+  if(!note) return;
+  const m = state.team.find(x=>x.id===mid);
+  m.coachingLog.unshift({ date: new Date().toISOString().split('T')[0], note });
+  closeModal();
+  showToast('Coaching entry added','success');
+  navigate('oto');
+}
+function addDecision(mid) {
+  openModal(
+    `<h2>Log Decision</h2>`,
+    `<div class="form-row"><label>Decision</label><textarea class="form-textarea" id="d-dec" placeholder="What was decided?"></textarea></div>
+     <div class="form-row"><label>Rationale</label><textarea class="form-textarea" id="d-rat" placeholder="Why was this decision made?"></textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveDecision('${mid}')">Log Decision</button>`
+  );
+}
+function saveDecision(mid) {
+  const dec = document.getElementById('d-dec').value.trim();
+  if(!dec) return;
+  const m = state.team.find(x=>x.id===mid);
+  m.decisionLog.unshift({ date: new Date().toISOString().split('T')[0], decision: dec, rationale: document.getElementById('d-rat').value||'—' });
+  closeModal();
+  showToast('Decision logged','success');
+  navigate('oto');
+}
+
+// ─── MODAL SYSTEM ─────────────────────────────────────────────────────────────
+function openModal(header, body, footer) {
+  document.getElementById('modal-header').innerHTML = header;
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-footer').innerHTML = footer;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+function closeModalOnOverlay(e) {
+  if(e.target===document.getElementById('modal-overlay')) closeModal();
+}
+function afterRender(view) {}
+
+// ─── DATA EXPORT / IMPORT ────────────────────────────────────────────────────
+function getExportPayload() {
+  return {
+    version: '1.0',
+    exported: new Date().toISOString(),
+    projects: state.projects,
+    tasks: state.tasks,
+    risks: state.risks,
+    team: state.team,
+  };
+}
+
+function toggleDataMenu(e) {
+  e.stopPropagation();
+  document.getElementById('data-dropdown').classList.toggle('open');
+}
+
+function closeDataMenu() {
+  document.getElementById('data-dropdown').classList.remove('open');
+}
+
+function exportJSON() {
+  closeDataMenu();
+  const payload = JSON.stringify(getExportPayload(), null, 2);
+  const blob = new Blob([payload], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `leados-export-${ts}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('JSON file downloaded', 'success');
+}
+
+function copyJSON() {
+  closeDataMenu();
+  const payload = JSON.stringify(getExportPayload(), null, 2);
+  navigator.clipboard.writeText(payload).then(() => {
+    showToast('JSON copied to clipboard', 'success');
+  }).catch(() => {
+    openModal(
+      '<h2>Copy JSON</h2><p>Select all and copy manually</p>',
+      `<textarea class="form-textarea" style="min-height:220px;font-family:var(--font-m);font-size:11px" readonly>${payload}</textarea>`,
+      '<button class="btn btn-primary" onclick="closeModal()">Close</button>'
+    );
+  });
+}
+
+function importFromFile(e) {
+  closeDataMenu();
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      applyImport(JSON.parse(ev.target.result));
+    } catch {
+      showToast('Invalid JSON file — could not parse');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function openPasteImport() {
+  closeDataMenu();
+  openModal(
+    '<h2>Paste JSON</h2><p>Paste a previously exported LeadOS JSON snapshot</p>',
+    `<div class="form-row"><label>JSON Data</label><textarea class="form-textarea" id="paste-json" style="min-height:200px;font-family:var(--font-m);font-size:11px" placeholder='Paste JSON here...'></textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="applyPastedJSON()">Import</button>`
+  );
+}
+
+function applyPastedJSON() {
+  const raw = document.getElementById('paste-json').value.trim();
+  try {
+    applyImport(JSON.parse(raw));
+  } catch {
+    showToast('Invalid JSON — check the format and try again');
+  }
+}
+
+function applyImport(data) {
+  if (!data.tasks && !data.risks && !data.team && !data.projects) {
+    showToast('JSON does not appear to be a LeadOS export');
+    return;
+  }
+  openModal(
+    '<h2>Confirm Import</h2><p>This will replace all current data</p>',
+    `<div style="background:var(--amber-dim);border:1px solid rgba(246,166,35,0.25);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--amber);margin-bottom:14px">
+       ⚠ Importing will overwrite your current tasks, risks, and team notes. This cannot be undone.
+     </div>
+     <div style="font-size:13px;color:var(--t1);display:flex;flex-direction:column;gap:6px">
+       ${data.projects ? `<div>• <strong style="color:var(--t0)">${data.projects.length}</strong> projects</div>` : ''}
+       ${data.tasks ? `<div>• <strong style="color:var(--t0)">${data.tasks.length}</strong> tasks</div>` : ''}
+       ${data.risks ? `<div>• <strong style="color:var(--t0)">${data.risks.length}</strong> risks</div>` : ''}
+       ${data.team  ? `<div>• <strong style="color:var(--t0)">${data.team.length}</strong> team members</div>` : ''}
+       ${data.exported ? `<div style="margin-top:6px;font-size:11px;color:var(--t2)">Exported: ${new Date(data.exported).toLocaleString()}</div>` : ''}
+     </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-danger" onclick="confirmImport(${JSON.stringify(data).replace(/</g,'\\u003c')})">Replace Data</button>`
+  );
+  // store pending import on window to avoid inline JSON issues
+  window._pendingImport = data;
+  document.querySelector('#modal-footer .btn-danger').onclick = () => confirmImport(window._pendingImport);
+}
+
+function confirmImport(data) {
+  if (data.projects) state.projects = data.projects;
+  if (data.tasks) state.tasks = data.tasks;
+  if (data.risks) state.risks = data.risks;
+  if (data.team)  state.team  = data.team;
+  state.selectedPerson = state.team[0]?.id || 'M1';
+  document.getElementById('risk-badge').textContent = state.risks.filter(r=>r.status!=='Closed').length;
+  closeModal();
+  showToast(`Import complete — ${state.tasks.length} tasks, ${state.risks.length} risks loaded`, 'success');
+  navigate(state.view);
+}
+
+function saveToLocalStorage() {
+  closeDataMenu();
+  localStorage.setItem('leados-data', JSON.stringify(getExportPayload()));
+  showToast('Data saved to browser storage', 'success');
+}
+
+function clearLocalStorage() {
+  closeDataMenu();
+  openModal(
+    '<h2>Clear Saved Data</h2>',
+    `<div style="font-size:13px;color:var(--t1)">This removes the auto-saved snapshot from browser storage. Your current session data is unaffected.</div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-danger" onclick="localStorage.removeItem('leados-data');closeModal();showToast('Saved data cleared')">Clear</button>`
+  );
+}
+
+function loadFromLocalStorage() {
+  const raw = localStorage.getItem('leados-data');
+  if (!raw) return false;
+  try {
+    const data = JSON.parse(raw);
+    if (data.projects) state.projects = data.projects;
+    if (data.tasks) state.tasks = data.tasks;
+    if (data.risks) state.risks = data.risks;
+    if (data.team)  state.team  = data.team;
+    return true;
+  } catch { return false; }
+}
+
+// ─── THEME ───────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('light');
+  document.getElementById('theme-icon-moon').style.display = isLight ? 'none' : '';
+  document.getElementById('theme-icon-sun').style.display  = isLight ? ''     : 'none';
+  localStorage.setItem('leados-theme', isLight ? 'light' : 'dark');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+(function init() {
+  if(localStorage.getItem('leados-theme')==='light') {
+    document.documentElement.classList.add('light');
+    document.getElementById('theme-icon-moon').style.display='none';
+    document.getElementById('theme-icon-sun').style.display='';
+  }
+  const now = new Date();
+  document.getElementById('topbar-date').textContent =
+    now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('risk-badge').textContent =
+    state.risks.filter(r=>r.status!=='Closed').length;
+  navigate('overview');
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeModal(); closeDataMenu(); } });
+  document.addEventListener('click', e=>{
+    if(!document.getElementById('data-menu-wrap').contains(e.target)) closeDataMenu();
+  });
+  const restored = loadFromLocalStorage();
+  if(restored) {
+    state.selectedPerson = state.team[0]?.id || 'M1';
+    showToast('Session restored from saved data', 'success');
+  }
+})();
+</script>
+</body>
+</html>
