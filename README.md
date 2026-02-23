@@ -1,5 +1,7 @@
 # LeadOS — Leadership Command Center
 
+**[▶ Open Live App](https://gsantos2005-create.github.io/LD3/)**
+
 A single-file internal leadership dashboard for managing teams across multiple enterprise projects. Built for senior leaders who need visibility into workload, risk, and team health — not micromanagement.
 
 ---
