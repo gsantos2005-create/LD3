@@ -610,6 +610,32 @@ td:first-child{color:var(--t0);font-weight:500}
 .cap-summary-fill{height:100%;border-radius:3px}
 .cap-summary-pct{font-family:var(--font-m);font-size:11px;width:38px;text-align:right;flex-shrink:0}
 
+/* MENTION DROPDOWN */
+.mention-dropdown{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;
+  background:var(--bg3);border:1px solid var(--border-hi);
+  border-radius:var(--r);padding:4px;z-index:30;
+  box-shadow:0 8px 24px rgba(0,0,0,0.35);
+  max-height:220px;overflow-y:auto;
+}
+.mention-option{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 10px;border-radius:var(--rs);
+  cursor:pointer;transition:background var(--tr);
+}
+.mention-option:hover,.mention-option.active{background:var(--bg5)}
+.mention-option-name{font-size:13px;color:var(--t0);font-weight:500}
+.mention-option-role{font-size:11px;color:var(--t2);margin-left:4px}
+.mention-hint{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;color:var(--t2);padding:3px 0;
+}
+.mention-hint kbd{
+  background:var(--bg5);border:1px solid var(--border-md);
+  border-radius:4px;padding:1px 6px;font-family:var(--font-m);
+  font-size:10px;color:var(--t1);
+}
+
 /* COLOR SWATCHES */
 .color-swatches{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 .color-swatch{
@@ -647,7 +673,7 @@ td:first-child{color:var(--t0);font-weight:500}
     <div class="sidebar-logo">
       <div class="logo-mark">L</div>
       <div>
-        <div class="logo-text">LeadOS<span class="logo-version">v0.3</span></div>
+        <div class="logo-text">LeadOS<span class="logo-version">v0.5</span></div>
         <div class="logo-sub">Command Center</div>
       </div>
     </div>
@@ -678,6 +704,10 @@ td:first-child{color:var(--t0);font-weight:500}
       <div class="nav-item" onclick="navigate('oto')" data-view="oto">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/></svg>
         1:1 Support
+      </div>
+      <div class="nav-item" onclick="navigate('teamnotes')" data-view="teamnotes">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
+        Team Notes
       </div>
     </nav>
     <div class="sidebar-footer">
@@ -758,10 +788,10 @@ td:first-child{color:var(--t0);font-weight:500}
 <script>
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const PROJECTS_DEFAULT = [
-  { id:'P1', name:'Project Nexus', desc:'ERP Migration', bp:5, reg:'High', status:'Active', color:'#e25b5b', deadline:'2026-04-30' },
-  { id:'P2', name:'Project Aurora', desc:'Customer Portal', bp:4, reg:'Medium', status:'Active', color:'#c9a84b', deadline:'2026-03-15' },
-  { id:'P3', name:'Project Delta', desc:'Data Warehouse', bp:3, reg:'Low', status:'Active', color:'#4f8ef7', deadline:'2026-05-31' },
-  { id:'P4', name:'Project Titan', desc:'Infra Modernization', bp:4, reg:'High', status:'Active', color:'#a78bfa', deadline:'2026-03-31' },
+  { id:'P1', name:'Project Nexus', desc:'ERP Migration', bp:5, reg:'High', status:'Active', color:'#e25b5b', deadline:'2026-04-30', bizFunction:'Finance & Operations' },
+  { id:'P2', name:'Project Aurora', desc:'Customer Portal', bp:4, reg:'Medium', status:'Active', color:'#c9a84b', deadline:'2026-03-15', bizFunction:'Customer Experience' },
+  { id:'P3', name:'Project Delta', desc:'Data Warehouse', bp:3, reg:'Low', status:'Active', color:'#4f8ef7', deadline:'2026-05-31', bizFunction:'Data & Analytics' },
+  { id:'P4', name:'Project Titan', desc:'Infra Modernization', bp:4, reg:'High', status:'Active', color:'#a78bfa', deadline:'2026-03-31', bizFunction:'IT Infrastructure' },
 ];
 
 const TEAM = [
@@ -880,7 +910,8 @@ const RISKS = [
 // ─── STATE ───────────────────────────────────────────────────────────────────
 const state = {
   view: 'overview',
-  taskFilter: { project:'all', priority:'all', risk:'all', sort:'due' },
+  taskFilter: { project:'all', priority:'all', risk:'all', sort:'due', person:'all' },
+  teamNotes: [],
   riskFilter: 'all',
   selectedPerson: 'M1',
   tasks: JSON.parse(JSON.stringify(TASKS)),
@@ -962,6 +993,7 @@ const TITLES = {
   projects: ['Projects','Priority Tracking'],
   risks: ['Risk Tracker','Active Risks & Mitigations'],
   oto: ['1:1 Support','Coaching & Development'],
+  teamnotes: ['Team Notes','Shared Leadership Log'],
 };
 function navigate(view) {
   state.view = view;
@@ -1220,6 +1252,7 @@ views.capacity = function() {
 views.projects = function() {
   let tasks=[...state.tasks];
   if(state.taskFilter.project!=='all') tasks=tasks.filter(t=>t.pid===state.taskFilter.project);
+  if(state.taskFilter.person!=='all') tasks=tasks.filter(t=>t.mid===state.taskFilter.person);
   if(state.taskFilter.priority!=='all') tasks=tasks.filter(t=>t.priority===state.taskFilter.priority);
   if(state.taskFilter.risk!=='all') tasks=tasks.filter(t=>t.risk===state.taskFilter.risk);
   if(state.taskFilter.sort==='due') tasks.sort((a,b)=>new Date(a.due)-new Date(b.due));
@@ -1265,6 +1298,7 @@ views.projects = function() {
             <div style="flex:1;min-width:0">
               <div style="font-size:13px;font-weight:600;color:var(--t0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
               <div style="font-size:11px;color:var(--t2);margin-top:1px">${p.desc}</div>
+              ${p.bizFunction?`<div style="font-size:10px;color:${p.color};margin-top:3px;font-weight:500;letter-spacing:0.03em">${p.bizFunction}</div>`:''}
             </div>
             <span class="badge ${p.status==='Active'?'badge-green':p.status==='On Hold'?'badge-amber':'badge-gray'}" style="font-size:9px;flex-shrink:0">${p.status}</span>
           </div>
@@ -1294,11 +1328,14 @@ views.projects = function() {
 
     <div class="filter-bar">
       <span style="font-size:12px;color:var(--t2);padding:0 4px">
-        ${state.taskFilter.project!=='all'
-          ? `Showing <strong style="color:var(--t0)">${getProject(state.taskFilter.project).name}</strong>`
-          : `All projects`}
+        ${state.taskFilter.project!=='all' ? `<strong style="color:var(--t0)">${getProject(state.taskFilter.project).name}</strong>` : 'All projects'}${state.taskFilter.person!=='all' ? ` · <strong style="color:var(--t0)">${getMember(state.taskFilter.person).name}</strong>` : ''}
         — ${tasks.length} task${tasks.length!==1?'s':''}
       </span>
+      <div style="flex:1"></div>
+      <select class="filter-select" onchange="setFilter('person',this.value)">
+        <option value="all">All Members</option>
+        ${state.team.map(m=>`<option value="${m.id}" ${state.taskFilter.person===m.id?'selected':''}>${m.name}</option>`).join('')}
+      </select>
       <select class="filter-select" onchange="setFilter('priority',this.value)">
         <option value="all">All Priorities</option>
         <option value="High">High Priority</option>
@@ -1515,10 +1552,230 @@ views.oto = function() {
   </div>`;
 };
 
+// ─── VIEW: TEAM NOTES ────────────────────────────────────────────────────────
+views.teamnotes = function() {
+  const notes = state.teamNotes;
+  return `<div class="view">
+    <div class="card mb-16">
+      <div class="card-title">
+        <span>New Team Note</span>
+        <span class="mention-hint">Type <kbd>@</kbd> to mention a team member on any line</span>
+      </div>
+      <div style="position:relative">
+        <textarea class="notes-area" id="tn-text"
+          placeholder="e.g. Discussed capacity concerns with @James Park&#10;@Sarah Chen to lead API review next sprint"
+          style="min-height:100px;margin-bottom:0"
+          oninput="handleMentionInput(event)"
+          onkeydown="handleMentionKey(event)"></textarea>
+        <div class="mention-dropdown" id="mention-dropdown" style="display:none"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="tn-preview-tags"></div>
+        <button class="btn btn-primary" onclick="addTeamNote()">Log Note</button>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-family:var(--font-d);font-size:18px;font-weight:600;color:var(--t0)">
+        Note Log <span style="font-size:14px;font-weight:400;color:var(--t2);font-style:italic">${notes.length} entr${notes.length===1?'y':'ies'}</span>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${notes.length ? notes.map((n,i)=>{
+        const tagged = extractMentions(n.text);
+        return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:16px 20px;transition:border-color var(--tr)"
+          onmouseenter="this.style.borderColor='var(--border-md)'" onmouseleave="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px">
+            <div class="log-date" style="margin-bottom:0">${fmtDatetime(n.datetime)}</div>
+            <button onclick="deleteTeamNote(${i})" style="background:none;border:none;cursor:pointer;color:var(--t2);font-size:11px;flex-shrink:0" title="Delete">✕</button>
+          </div>
+          <div style="font-size:13px;color:var(--t1);line-height:1.8;white-space:pre-wrap">${renderNoteText(n.text)}</div>
+          ${tagged.length?`
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:10px;margin-top:10px;border-top:1px solid var(--border)">
+              <span style="font-size:11px;color:var(--t2)">Go to tasks →</span>
+              ${tagged.map(mid=>{
+                const m=getMember(mid);
+                return `<button onclick="goToPersonTasks('${mid}')" style="
+                  display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+                  border-radius:20px;background:linear-gradient(135deg,${m.color}18,${m.color}08);
+                  border:1px solid ${m.color}44;color:${m.color};
+                  font-size:11px;font-weight:500;cursor:pointer;transition:all var(--tr)
+                " title="Filter Projects by ${m.name}">
+                  <span style="width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,${m.color}cc,${m.color}66);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff">${m.initials}</span>
+                  ${m.name}
+                </button>`;
+              }).join('')}
+            </div>`:''}
+        </div>`;
+      }).join('') : `<div class="empty-state">No team notes yet. Add the first one above.</div>`}
+    </div>
+  </div>`;
+};
+
 // ─── FILTER ───────────────────────────────────────────────────────────────────
 function setFilter(key, val) {
   state.taskFilter[key] = val;
   navigate('projects');
+}
+function goToPersonTasks(mid) {
+  state.taskFilter.person = mid;
+  navigate('projects');
+}
+
+// ─── TEAM NOTES ──────────────────────────────────────────────────────────────
+function addTeamNote() {
+  const text = document.getElementById('tn-text').value.trim();
+  if (!text) { showToast('Please write something before logging'); return; }
+  const taggedMembers = extractMentions(text);
+  state.teamNotes.unshift({ datetime: new Date().toISOString(), text, taggedMembers });
+  showToast('Team note logged', 'success');
+  navigate('teamnotes');
+}
+function deleteTeamNote(i) {
+  state.teamNotes.splice(i, 1);
+  navigate('teamnotes');
+}
+
+// ─── @MENTION SYSTEM ─────────────────────────────────────────────────────────
+function extractMentions(text) {
+  if (!text) return [];
+  const matched = [];
+  for (const m of state.team) {
+    if (text.includes('@' + m.name) && !matched.includes(m.id)) {
+      matched.push(m.id);
+    }
+  }
+  return matched;
+}
+
+function renderNoteText(text) {
+  if (!text) return '';
+  // Escape HTML entities first
+  let out = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Replace @Name with styled clickable pill (longest names first to avoid partial matches)
+  const sorted = [...state.team].sort((a,b) => b.name.length - a.name.length);
+  for (const m of sorted) {
+    const escapedName = m.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    out = out.replace(
+      new RegExp('@' + escapedName, 'g'),
+      `<button onclick="goToPersonTasks('${m.id}')" style="display:inline;background:linear-gradient(135deg,${m.color}22,${m.color}0a);border:1px solid ${m.color}55;color:${m.color};padding:1px 8px;border-radius:12px;font-size:12px;font-weight:600;cursor:pointer;vertical-align:middle;transition:all var(--tr)" title="View ${m.name}'s tasks">@${m.name}</button>`
+    );
+  }
+  return out;
+}
+
+function handleMentionInput(event) {
+  const ta = event.target;
+  const val = ta.value;
+  const pos = ta.selectionStart;
+  const dropdown = document.getElementById('mention-dropdown');
+  const preview  = document.getElementById('tn-preview-tags');
+
+  // Update preview tags from full text
+  const mentions = extractMentions(val);
+  if (preview) {
+    preview.innerHTML = mentions.map(mid => {
+      const m = getMember(mid);
+      return `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:12px;background:linear-gradient(135deg,${m.color}22,${m.color}0a);border:1px solid ${m.color}44;color:${m.color};font-size:11px;font-weight:600">
+        <span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,${m.color}cc,${m.color}66);display:inline-flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff">${m.initials}</span>
+        ${m.name}
+      </span>`;
+    }).join('');
+  }
+
+  // Determine @query on current line before cursor
+  const textBefore   = val.slice(0, pos);
+  const lastNewline  = textBefore.lastIndexOf('\n');
+  const lineText     = textBefore.slice(lastNewline + 1);
+  const atIdx        = lineText.lastIndexOf('@');
+
+  if (atIdx === -1) { dropdown.style.display = 'none'; return; }
+
+  const query        = lineText.slice(atIdx + 1);
+  const queryTrimmed = query.trimEnd();
+
+  // Hide if an exact full name is already completed
+  if (state.team.some(m => m.name.toLowerCase() === queryTrimmed.toLowerCase())) {
+    dropdown.style.display = 'none'; return;
+  }
+  // Hide if query is too long to match any name
+  if (query.length > 25) { dropdown.style.display = 'none'; return; }
+
+  const filtered = state.team.filter(m =>
+    m.name.toLowerCase().startsWith(queryTrimmed.toLowerCase())
+  );
+
+  if (!filtered.length) { dropdown.style.display = 'none'; return; }
+
+  dropdown.style.display = 'block';
+  dropdown.innerHTML = filtered.map(m =>
+    `<div class="mention-option" onmousedown="insertMention('${m.id}','${m.name.replace(/'/g,"\\'").replace(/\\/g,'\\\\')}')">
+      <span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,${m.color}cc,${m.color}66);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0">${m.initials}</span>
+      <span class="mention-option-name">${m.name}</span>
+      <span class="mention-option-role" style="margin-left:auto">${state.tasks.filter(t=>t.mid===m.id).length} tasks</span>
+    </div>`
+  ).join('');
+}
+
+function handleMentionKey(event) {
+  const dropdown = document.getElementById('mention-dropdown');
+  if (dropdown.style.display === 'none') return;
+
+  if (event.key === 'Escape') {
+    dropdown.style.display = 'none';
+    event.preventDefault();
+    return;
+  }
+  const options = dropdown.querySelectorAll('.mention-option');
+  if (!options.length) return;
+
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    const current = dropdown.querySelector('.mention-option.active');
+    if (!current) {
+      options[event.key === 'ArrowDown' ? 0 : options.length - 1].classList.add('active');
+    } else {
+      current.classList.remove('active');
+      const idx  = [...options].indexOf(current);
+      const next = event.key === 'ArrowDown'
+        ? options[Math.min(idx + 1, options.length - 1)]
+        : options[Math.max(idx - 1, 0)];
+      next.classList.add('active');
+    }
+    event.preventDefault();
+    return;
+  }
+  if (event.key === 'Enter' || event.key === 'Tab') {
+    const active = dropdown.querySelector('.mention-option.active');
+    if (active) {
+      active.dispatchEvent(new MouseEvent('mousedown'));
+      event.preventDefault();
+    }
+  }
+}
+
+function insertMention(mid, name) {
+  const ta  = document.getElementById('tn-text');
+  const val = ta.value;
+  const pos = ta.selectionStart;
+
+  const textBefore  = val.slice(0, pos);
+  const lastNewline = textBefore.lastIndexOf('\n');
+  const lineText    = textBefore.slice(lastNewline + 1);
+  const atIdx       = lineText.lastIndexOf('@');
+
+  if (atIdx === -1) { document.getElementById('mention-dropdown').style.display='none'; return; }
+
+  const beforeAt   = textBefore.slice(0, lastNewline + 1 + atIdx);
+  const afterCursor = val.slice(pos);
+  ta.value = beforeAt + '@' + name + ' ' + afterCursor;
+
+  const newPos = beforeAt.length + 1 + name.length + 1; // '@' + name + ' '
+  ta.setSelectionRange(newPos, newPos);
+
+  document.getElementById('mention-dropdown').style.display = 'none';
+  ta.dispatchEvent(new Event('input'));
+  ta.focus();
 }
 
 // ─── DRAG & DROP ─────────────────────────────────────────────────────────────
@@ -1767,13 +2024,14 @@ function deleteMember(mid) {
 const PROJECT_COLORS = ['#e25b5b','#c9a84b','#4f8ef7','#a78bfa','#3ecf8e','#f6a623','#f472b6','#22d3ee'];
 
 function projectModalBody(p) {
-  const name     = p?.name     || '';
-  const desc     = p?.desc     || '';
-  const bp       = p?.bp       || 3;
-  const reg      = p?.reg      || 'Medium';
-  const status   = p?.status   || 'Active';
-  const deadline = p?.deadline || '';
-  const color    = p?.color    || PROJECT_COLORS[0];
+  const name        = p?.name        || '';
+  const desc        = p?.desc        || '';
+  const bp          = p?.bp          || 3;
+  const reg         = p?.reg         || 'Medium';
+  const status      = p?.status      || 'Active';
+  const deadline    = p?.deadline    || '';
+  const color       = p?.color       || PROJECT_COLORS[0];
+  const bizFunction = p?.bizFunction || '';
   return `
     <div class="form-grid">
       <div class="form-row"><label>Project Name</label>
@@ -1824,6 +2082,9 @@ function projectModalBody(p) {
         </div>
       </div>
       <input type="hidden" id="pm-color" value="${color}"/>
+    </div>
+    <div class="form-row"><label>Business Function</label>
+      <input class="form-input" id="pm-bizfn" value="${bizFunction}" placeholder="e.g. Finance & Operations, Customer Experience, IT Infrastructure"/>
     </div>`;
 }
 
@@ -1855,7 +2116,8 @@ function saveNewProject() {
     reg:      document.getElementById('pm-reg').value,
     status:   document.getElementById('pm-status').value,
     deadline: document.getElementById('pm-deadline').value,
-    color:    document.getElementById('pm-color').value || PROJECT_COLORS[0],
+    color:       document.getElementById('pm-color').value || PROJECT_COLORS[0],
+    bizFunction: document.getElementById('pm-bizfn').value.trim(),
   };
   state.projects.push(newProject);
   closeModal();
@@ -1890,7 +2152,8 @@ function saveEditProject(pid) {
   p.reg      = document.getElementById('pm-reg').value;
   p.status   = document.getElementById('pm-status').value;
   p.deadline = document.getElementById('pm-deadline').value;
-  p.color    = document.getElementById('pm-color').value || p.color;
+  p.color       = document.getElementById('pm-color').value || p.color;
+  p.bizFunction = document.getElementById('pm-bizfn').value.trim();
   closeModal();
   showToast(`${p.name} updated`, 'success');
   navigate('projects');
@@ -2197,6 +2460,7 @@ function getExportPayload() {
     tasks: state.tasks,
     risks: state.risks,
     team: state.team,
+    teamNotes: state.teamNotes,
   };
 }
 
@@ -2298,10 +2562,11 @@ function applyImport(data) {
 }
 
 function confirmImport(data) {
-  if (data.projects) state.projects = data.projects;
-  if (data.tasks) state.tasks = data.tasks;
-  if (data.risks) state.risks = data.risks;
-  if (data.team)  state.team  = data.team;
+  if (data.projects)   state.projects   = data.projects;
+  if (data.tasks)      state.tasks      = data.tasks;
+  if (data.risks)      state.risks      = data.risks;
+  if (data.team)       state.team       = data.team;
+  if (data.teamNotes)  state.teamNotes  = data.teamNotes;
   state.selectedPerson = state.team[0]?.id || 'M1';
   document.getElementById('risk-badge').textContent = state.risks.filter(r=>r.status!=='Closed').length;
   closeModal();
