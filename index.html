@@ -673,7 +673,7 @@ td:first-child{color:var(--t0);font-weight:500}
     <div class="sidebar-logo">
       <div class="logo-mark">L</div>
       <div>
-        <div class="logo-text">LeadOS<span class="logo-version">v0.8</span></div>
+        <div class="logo-text">LeadOS<span class="logo-version">v0.9</span></div>
         <div class="logo-sub">Command Center</div>
       </div>
     </div>
@@ -2451,23 +2451,51 @@ function openEditRisk(rid) {
        <div class="form-row"><label>Severity</label><select class="form-select" id="r-sev"><option ${r.severity==='High'?'selected':''}>High</option><option ${r.severity==='Medium'?'selected':''}>Medium</option><option ${r.severity==='Low'?'selected':''}>Low</option></select></div>
        <div class="form-row"><label>Status</label><select class="form-select" id="r-status"><option ${r.status==='Open'?'selected':''}>Open</option><option ${r.status==='Monitoring'?'selected':''}>Monitoring</option><option ${r.status==='Closed'?'selected':''}>Closed</option></select></div>
      </div>
+     <div class="form-grid">
+       <div class="form-row"><label>Risk Owner</label><select class="form-select" id="r-owner">${state.team.map(m=>`<option value="${m.id}" ${r.owner===m.id?'selected':''}>${m.name}</option>`).join('')}</select></div>
+       <div class="form-row"><label>Due Date</label><input class="form-input" id="r-due" type="date" value="${r.due||''}"/></div>
+     </div>
      <div class="form-row"><label>Mitigation Plan</label><textarea class="form-textarea" id="r-mit">${r.mitigation}</textarea></div>
      <div class="form-row"><label>Notes</label><textarea class="form-textarea" id="r-notes">${r.notes||''}</textarea></div>`,
-    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    `<button class="btn btn-danger btn-sm" onclick="confirmDeleteRisk('${rid}')">Delete</button>
+     <div style="flex:1"></div>
+     <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
      <button class="btn btn-primary" onclick="updateRisk('${rid}')">Save</button>`
   );
 }
 function updateRisk(rid) {
   const r = state.risks.find(x=>x.id===rid);
   if(!r) return;
-  r.title = document.getElementById('r-title').value.trim()||r.title;
-  r.severity = document.getElementById('r-sev').value;
-  r.status = document.getElementById('r-status').value;
+  r.title      = document.getElementById('r-title').value.trim()||r.title;
+  r.severity   = document.getElementById('r-sev').value;
+  r.status     = document.getElementById('r-status').value;
+  r.owner      = document.getElementById('r-owner').value;
+  r.due        = document.getElementById('r-due').value;
   r.mitigation = document.getElementById('r-mit').value;
-  r.notes = document.getElementById('r-notes').value;
+  r.notes      = document.getElementById('r-notes').value;
   document.getElementById('risk-badge').textContent = state.risks.filter(r=>r.status!=='Closed').length;
   closeModal();
   showToast('Risk updated', 'success');
+  navigate('risks');
+}
+function confirmDeleteRisk(rid) {
+  const r = state.risks.find(x=>x.id===rid);
+  if(!r) return;
+  openModal(
+    `<h2>Delete Risk?</h2>`,
+    `<div style="background:var(--red-dim);border:1px solid rgba(226,91,91,0.22);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--red)">
+       ⚠ "${r.title}" will be permanently removed.
+     </div>`,
+    `<button class="btn btn-ghost" onclick="openEditRisk('${rid}')">← Back</button>
+     <div style="flex:1"></div>
+     <button class="btn btn-danger" onclick="deleteRisk('${rid}')">Delete Risk</button>`
+  );
+}
+function deleteRisk(rid) {
+  state.risks = state.risks.filter(x=>x.id!==rid);
+  document.getElementById('risk-badge').textContent = state.risks.filter(r=>r.status!=='Closed').length;
+  closeModal();
+  showToast('Risk deleted');
   navigate('risks');
 }
 
