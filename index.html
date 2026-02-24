@@ -673,7 +673,7 @@ td:first-child{color:var(--t0);font-weight:500}
     <div class="sidebar-logo">
       <div class="logo-mark">L</div>
       <div>
-        <div class="logo-text">LeadOS<span class="logo-version">v0.7</span></div>
+        <div class="logo-text">LeadOS<span class="logo-version">v0.8</span></div>
         <div class="logo-sub">Command Center</div>
       </div>
     </div>
@@ -788,10 +788,14 @@ td:first-child{color:var(--t0);font-weight:500}
 <script>
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const PROJECTS_DEFAULT = [
-  { id:'P1', name:'Project Nexus', desc:'ERP Migration', bp:5, reg:'High', status:'Active', color:'#e25b5b', deadline:'2026-04-30', bizFunction:'Finance & Operations' },
-  { id:'P2', name:'Project Aurora', desc:'Customer Portal', bp:4, reg:'Medium', status:'Active', color:'#c9a84b', deadline:'2026-03-15', bizFunction:'Customer Experience' },
-  { id:'P3', name:'Project Delta', desc:'Data Warehouse', bp:3, reg:'Low', status:'Active', color:'#4f8ef7', deadline:'2026-05-31', bizFunction:'Data & Analytics' },
-  { id:'P4', name:'Project Titan', desc:'Infra Modernization', bp:4, reg:'High', status:'Active', color:'#a78bfa', deadline:'2026-03-31', bizFunction:'IT Infrastructure' },
+  { id:'P1', name:'Project Nexus', desc:'ERP Migration', bp:5, reg:'High', status:'Active', color:'#e25b5b', deadline:'2026-04-30', bizFunction:'Finance & Operations',
+    stakeholders:[{name:'Diane Okafor',role:'Business Analyst'},{name:'Tom Hartley',role:'System Owner'},{name:'Priya Nair',role:'Change Lead'},{name:'Marcus Webb',role:'Vendor Liaison'}] },
+  { id:'P2', name:'Project Aurora', desc:'Customer Portal', bp:4, reg:'Medium', status:'Active', color:'#c9a84b', deadline:'2026-03-15', bizFunction:'Customer Experience',
+    stakeholders:[{name:'Kenji Mori',role:'UX Lead'},{name:'Sandra Ellis',role:'Product Owner'},{name:'Carla Ruiz',role:'Trainer'}] },
+  { id:'P3', name:'Project Delta', desc:'Data Warehouse', bp:3, reg:'Low', status:'Active', color:'#4f8ef7', deadline:'2026-05-31', bizFunction:'Data & Analytics',
+    stakeholders:[{name:'Ahmed Farouk',role:'Data Architect'},{name:'Lin Zhao',role:'Compliance Officer'}] },
+  { id:'P4', name:'Project Titan', desc:'Infra Modernization', bp:4, reg:'High', status:'Active', color:'#a78bfa', deadline:'2026-03-31', bizFunction:'IT Infrastructure',
+    stakeholders:[{name:'Raj Patel',role:'Infrastructure Lead'},{name:'Fiona Grant',role:'Security Advisor'},{name:'Owen Tully',role:'Network Engineer'}] },
 ];
 
 const TEAM = [
@@ -1251,6 +1255,8 @@ views.capacity = function() {
 
 // ─── VIEW: PROJECTS ───────────────────────────────────────────────────────────
 views.projects = function() {
+  const selProj = state.taskFilter.project !== 'all'
+    ? state.projects.find(p => p.id === state.taskFilter.project) : null;
   let tasks=[...state.tasks];
   if(state.taskFilter.project!=='all') tasks=tasks.filter(t=>t.pid===state.taskFilter.project);
   if(state.taskFilter.person!=='all') tasks=tasks.filter(t=>t.mid===state.taskFilter.person);
@@ -1358,6 +1364,17 @@ views.projects = function() {
       </select>
     </div>
 
+    ${selProj?.stakeholders?.length ? `
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;
+        padding:10px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r)">
+        <span style="font-size:11px;color:var(--t2);white-space:nowrap;letter-spacing:0.04em;text-transform:uppercase;flex-shrink:0">Project Team:</span>
+        ${selProj.stakeholders.map(s=>`
+          <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+            border-radius:12px;background:var(--bg5);border:1px solid var(--border-md);font-size:11px">
+            <span style="font-weight:600;color:var(--t0)">${s.name}</span>
+            ${s.role?`<span style="color:var(--t2)">· ${s.role}</span>`:''}
+          </span>`).join('')}
+      </div>` : ''}
     ${conflictTasks.size?`<div style="background:var(--red-dim);border:1px solid rgba(226,91,91,0.22);border-radius:var(--r);padding:10px 16px;margin-bottom:14px;font-size:12px;color:var(--red)">
       ⚠ <strong>${conflictTasks.size} conflicting high-priority deadline${conflictTasks.size>1?'s':''}</strong> detected — multiple High tasks due same day for same person
     </div>`:''}
@@ -2123,6 +2140,14 @@ function projectModalBody(p) {
     </div>
     <div class="form-row"><label>Business Function</label>
       <input class="form-input" id="pm-bizfn" value="${bizFunction}" placeholder="e.g. Finance & Operations, Customer Experience, IT Infrastructure"/>
+    </div>
+    <div class="form-row" style="margin-top:4px">
+      <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span>Project Team</span>
+        <span style="font-size:11px;color:var(--t2);font-weight:400">For reference only — not tracked in tasks</span>
+      </label>
+      <div id="pm-stakeholders"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="addStakeholderRow()">+ Add Person</button>
     </div>`;
 }
 
@@ -2134,13 +2159,57 @@ function selectProjectColor(color) {
   });
 }
 
+function readStakeholdersFromDOM() {
+  const result = [];
+  let i = 0;
+  while (document.getElementById(`pm-sn-${i}`)) {
+    const name = document.getElementById(`pm-sn-${i}`).value.trim();
+    const role = document.getElementById(`pm-sr-${i}`).value.trim();
+    if (name) result.push({ name, role });
+    i++;
+  }
+  return result;
+}
+
+function rerenderStakeholders() {
+  const el = document.getElementById('pm-stakeholders');
+  if (!el) return;
+  const list = window._pmStakeholders || [];
+  el.innerHTML = list.length ? list.map((s, i) => `
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <input class="form-input" id="pm-sn-${i}" value="${s.name.replace(/"/g,'&quot;')}" placeholder="Name" style="flex:1;min-width:0"/>
+      <input class="form-input" id="pm-sr-${i}" value="${s.role.replace(/"/g,'&quot;')}" placeholder="Role / Function" style="flex:1;min-width:0"/>
+      <button onclick="removeStakeholder(${i})" title="Remove"
+        style="flex-shrink:0;width:28px;height:28px;border-radius:var(--rs);background:none;border:1px solid var(--border);color:var(--t2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all var(--tr)"
+        onmouseenter="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+        onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--t2)'">✕</button>
+    </div>`).join('') : `<div style="font-size:12px;color:var(--t2);padding:6px 0">No team members added yet.</div>`;
+}
+
+function addStakeholderRow() {
+  window._pmStakeholders = readStakeholdersFromDOM();
+  window._pmStakeholders.push({ name: '', role: '' });
+  rerenderStakeholders();
+  // Focus the new name input
+  const idx = window._pmStakeholders.length - 1;
+  setTimeout(() => document.getElementById(`pm-sn-${idx}`)?.focus(), 0);
+}
+
+function removeStakeholder(i) {
+  window._pmStakeholders = readStakeholdersFromDOM();
+  window._pmStakeholders.splice(i, 1);
+  rerenderStakeholders();
+}
+
 function openAddProject() {
+  window._pmStakeholders = [];
   openModal(
     `<h2>Add Project</h2><p>New project will be available for task assignment</p>`,
     projectModalBody(null),
     `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
      <button class="btn btn-primary" onclick="saveNewProject()">Add Project</button>`
   );
+  rerenderStakeholders();
 }
 
 function saveNewProject() {
@@ -2156,6 +2225,7 @@ function saveNewProject() {
     deadline: document.getElementById('pm-deadline').value,
     color:       document.getElementById('pm-color').value || PROJECT_COLORS[0],
     bizFunction: document.getElementById('pm-bizfn').value.trim(),
+    stakeholders: readStakeholdersFromDOM(),
   };
   state.projects.push(newProject);
   closeModal();
@@ -2166,6 +2236,7 @@ function saveNewProject() {
 function openEditProject(pid) {
   const p = getProject(pid);
   const ptasks = state.tasks.filter(t=>t.pid===pid);
+  window._pmStakeholders = JSON.parse(JSON.stringify(p.stakeholders || []));
   openModal(
     `<div style="display:flex;align-items:center;gap:12px">
        <div style="width:16px;height:38px;border-radius:3px;background:${p.color};flex-shrink:0"></div>
@@ -2177,6 +2248,7 @@ function openEditProject(pid) {
      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
      <button class="btn btn-primary" onclick="saveEditProject('${pid}')">Save Changes</button>`
   );
+  rerenderStakeholders();
 }
 
 function saveEditProject(pid) {
@@ -2190,8 +2262,9 @@ function saveEditProject(pid) {
   p.reg      = document.getElementById('pm-reg').value;
   p.status   = document.getElementById('pm-status').value;
   p.deadline = document.getElementById('pm-deadline').value;
-  p.color       = document.getElementById('pm-color').value || p.color;
-  p.bizFunction = document.getElementById('pm-bizfn').value.trim();
+  p.color        = document.getElementById('pm-color').value || p.color;
+  p.bizFunction  = document.getElementById('pm-bizfn').value.trim();
+  p.stakeholders = readStakeholdersFromDOM();
   closeModal();
   showToast(`${p.name} updated`, 'success');
   navigate('projects');
