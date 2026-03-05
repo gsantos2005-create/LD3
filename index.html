@@ -673,7 +673,7 @@ td:first-child{color:var(--t0);font-weight:500}
     <div class="sidebar-logo">
       <div class="logo-mark">L</div>
       <div>
-        <div class="logo-text">LeadOS<span class="logo-version">v0.9</span></div>
+        <div class="logo-text">LeadOS<span class="logo-version">v0.12</span></div>
         <div class="logo-sub">Command Center</div>
       </div>
     </div>
@@ -708,6 +708,10 @@ td:first-child{color:var(--t0);font-weight:500}
       <div class="nav-item" onclick="navigate('teamnotes')" data-view="teamnotes">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
         Team Notes
+      </div>
+      <div class="nav-item" onclick="navigate('minutes')" data-view="minutes">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+        Meeting Minutes
       </div>
     </nav>
     <div class="sidebar-footer">
@@ -917,6 +921,10 @@ const state = {
   taskFilter: { project:'all', priority:'all', risk:'all', sort:'due', person:'all' },
   teamNotes: [],
   tnAttendees: [],
+  tnSearch: '',
+  meetingMinutes: [],
+  mmAttendees: [],
+  mmSearch: '',
   riskFilter: 'all',
   selectedPerson: 'M1',
   tasks: JSON.parse(JSON.stringify(TASKS)),
@@ -999,6 +1007,7 @@ const TITLES = {
   risks: ['Risk Tracker','Active Risks & Mitigations'],
   oto: ['1:1 Support','Coaching & Development'],
   teamnotes: ['Team Notes','Shared Leadership Log'],
+  minutes:   ['Meeting Minutes','Formal Meeting Log'],
 };
 function navigate(view) {
   state.view = view;
@@ -1257,6 +1266,7 @@ views.capacity = function() {
 views.projects = function() {
   const selProj = state.taskFilter.project !== 'all'
     ? state.projects.find(p => p.id === state.taskFilter.project) : null;
+  const projMinutes = selProj ? state.meetingMinutes.filter(m => m.projectId === selProj.id) : [];
   let tasks=[...state.tasks];
   if(state.taskFilter.project!=='all') tasks=tasks.filter(t=>t.pid===state.taskFilter.project);
   if(state.taskFilter.person!=='all') tasks=tasks.filter(t=>t.mid===state.taskFilter.person);
@@ -1375,6 +1385,30 @@ views.projects = function() {
             ${s.role?`<span style="color:var(--t2)">· ${s.role}</span>`:''}
           </span>`).join('')}
       </div>` : ''}
+    ${projMinutes.length ? (()=>{ const last = projMinutes[0]; return `
+      <div style="margin-bottom:14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--bg4)">
+          <span style="font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:0.04em">
+            Latest Meeting Minutes
+            ${projMinutes.length > 1 ? `<span style="font-weight:400;text-transform:none;font-style:italic;margin-left:6px">(${projMinutes.length} total)</span>` : ''}
+          </span>
+          <button onclick="navigate('minutes')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--gold);padding:0;font-family:var(--font-u)">View all →</button>
+        </div>
+        <div style="padding:12px 16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;flex-shrink:0;${mmCategoryStyle(last.category)}">${last.category}</span>
+            <span style="font-size:13px;font-weight:600;color:var(--t0)">${last.title}</span>
+            <span style="font-size:11px;color:var(--t2);font-family:var(--font-m);margin-left:auto;white-space:nowrap;flex-shrink:0">${fmtDatetime(last.datetime)}</span>
+          </div>
+          <div style="font-size:12px;color:var(--t1);line-height:1.7;white-space:pre-wrap;max-height:80px;overflow-y:auto;padding-right:4px">${last.notes}</div>
+          ${last.actionItems ? `
+            <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+              <span style="font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:0.04em;font-weight:500">Action Items</span>
+              <div style="font-size:12px;color:var(--t1);line-height:1.7;white-space:pre-wrap;max-height:60px;overflow-y:auto;margin-top:4px;padding-right:4px">${last.actionItems}</div>
+            </div>` : ''}
+        </div>
+      </div>`; })() : ''}
+
     ${conflictTasks.size?`<div style="background:var(--red-dim);border:1px solid rgba(226,91,91,0.22);border-radius:var(--r);padding:10px 16px;margin-bottom:14px;font-size:12px;color:var(--red)">
       ⚠ <strong>${conflictTasks.size} conflicting high-priority deadline${conflictTasks.size>1?'s':''}</strong> detected — multiple High tasks due same day for same person
     </div>`:''}
@@ -1579,6 +1613,9 @@ views.teamnotes = function() {
         <span>New Team Note</span>
         <span class="mention-hint">Type <kbd>@</kbd> to mention a team member on any line</span>
       </div>
+      <input type="text" class="form-input" id="tn-title"
+        placeholder="Meeting title (e.g. Weekly Sync, Project Alpha Review)"
+        style="margin-bottom:10px">
       <div style="position:relative">
         <textarea class="notes-area" id="tn-text"
           placeholder="e.g. Discussed capacity concerns with @James Park&#10;@Sarah Chen to lead API review next sprint"
@@ -1614,32 +1651,102 @@ views.teamnotes = function() {
       </div>
     </div>
 
-    <div style="display:flex;flex-direction:column;gap:10px">
-      ${notes.length ? notes.map((n,i)=>{
-        const tagged = extractMentions(n.text);
-        return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:16px 20px;transition:border-color var(--tr)"
-          onmouseenter="this.style.borderColor='var(--border-md)'" onmouseleave="this.style.borderColor='var(--border)'">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px">
-            <div class="log-date" style="margin-bottom:0">${fmtDatetime(n.datetime)}</div>
-            <button onclick="deleteTeamNote(${i})" style="background:none;border:none;cursor:pointer;color:var(--t2);font-size:11px;flex-shrink:0" title="Delete">✕</button>
-          </div>
-          <div style="font-size:13px;color:var(--t1);line-height:1.8;white-space:pre-wrap">${renderNoteText(n.text)}</div>
-          ${n.attendees?.length?`
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:10px;margin-top:10px;border-top:1px solid var(--border)">
-              <span style="font-size:11px;color:var(--t2);white-space:nowrap;letter-spacing:0.04em;text-transform:uppercase">Present:</span>
-              ${n.attendees.map(mid=>{
-                const m=getMember(mid);
-                return `<button onclick="goToOto('${mid}')" style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;
-                  background:linear-gradient(135deg,${m.color}18,${m.color}08);border:1px solid ${m.color}33;
-                  color:var(--t1);font-size:11px;cursor:pointer;transition:all var(--tr)"
-                  title="Open ${m.name}'s 1:1 notes">
-                  <span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,${m.color}cc,${m.color}66);display:inline-flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff">${m.initials}</span>
-                  ${m.name}
-                </button>`;
-              }).join('')}
-            </div>`:''}
-        </div>`;
-      }).join('') : `<div class="empty-state">No team notes yet. Add the first one above.</div>`}
+    <input type="text" class="form-input" id="tn-search"
+      placeholder="Search notes by title or content…"
+      value="${state.tnSearch.replace(/"/g,'&quot;')}"
+      oninput="filterTeamNotes(this.value)"
+      style="margin-bottom:12px">
+
+    <div id="tn-notes-list" style="display:flex;flex-direction:column;gap:10px">
+      ${renderTeamNoteCards(notes, state.tnSearch)}
+    </div>
+  </div>`;
+};
+
+// ─── VIEW: MEETING MINUTES ────────────────────────────────────────────────────
+views.minutes = function() {
+  const mins = state.meetingMinutes;
+  return `<div class="view">
+    <div class="card mb-16">
+      <div class="card-title"><span>New Meeting Minutes</span></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:500;color:var(--t2);margin-bottom:5px;letter-spacing:0.04em;text-transform:uppercase">Title <span style="color:var(--amber)">*</span></label>
+          <input type="text" class="form-input" id="mm-title" placeholder="e.g. Q2 Planning, Incident Review…">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:500;color:var(--t2);margin-bottom:5px;letter-spacing:0.04em;text-transform:uppercase">Category</label>
+          <select class="form-select" id="mm-category">
+            <option value="General">General</option>
+            <option value="Project">Project</option>
+            <option value="Problem">Problem / Incident</option>
+            <option value="Stakeholder">Stakeholder</option>
+            <option value="Executive">Executive</option>
+            <option value="Ad-hoc">Ad-hoc</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px">
+        <label style="display:block;font-size:11px;font-weight:500;color:var(--t2);margin-bottom:5px;letter-spacing:0.04em;text-transform:uppercase">Related Project <span style="font-style:italic;text-transform:none;font-weight:400">(optional)</span></label>
+        <select class="form-select" id="mm-project">
+          <option value="">— None —</option>
+          ${state.projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}
+        </select>
+      </div>
+
+      <div style="margin-bottom:10px">
+        <label style="display:block;font-size:11px;font-weight:500;color:var(--t2);margin-bottom:5px;letter-spacing:0.04em;text-transform:uppercase">Discussion / Notes <span style="color:var(--amber)">*</span></label>
+        <textarea class="notes-area" id="mm-notes" placeholder="Key discussion points, decisions, context…" style="min-height:110px"></textarea>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:11px;font-weight:500;color:var(--t2);margin-bottom:5px;letter-spacing:0.04em;text-transform:uppercase">Action Items <span style="font-style:italic;text-transform:none;font-weight:400">(optional)</span></label>
+        <textarea class="notes-area" id="mm-actions" placeholder="Follow-up tasks, owners, deadlines…" style="min-height:70px"></textarea>
+      </div>
+
+      <div style="padding-top:10px;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <span style="font-size:11px;color:var(--t2);white-space:nowrap;letter-spacing:0.04em;text-transform:uppercase">Team Present:</span>
+          ${state.team.map(m=>`
+            <button id="mm-att-${m.id}" onclick="toggleMmAttendee('${m.id}')"
+              title="${m.name}"
+              style="width:30px;height:30px;border-radius:50%;background:var(--bg5);border:2px solid transparent;
+                color:var(--t1);font-size:10px;font-weight:700;cursor:pointer;
+                transition:all var(--tr);flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+                ${state.mmAttendees.includes(m.id)?`background:linear-gradient(135deg,${m.color}cc,${m.color}66);border-color:${m.color};color:#fff`:''}"
+            >${m.initials}</button>
+          `).join('')}
+          <span style="font-size:11px;color:var(--t2);margin-left:2px" id="mm-att-names">
+            ${state.mmAttendees.map(id=>getMember(id)?.name).filter(Boolean).join(', ') || '<span style="font-style:italic">No one selected</span>'}
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;color:var(--t2);white-space:nowrap;letter-spacing:0.04em;text-transform:uppercase">External:</span>
+          <input type="text" class="form-input" id="mm-external" placeholder="e.g. Jane Smith (Vendor), Bob Lee (Client)" style="flex:1">
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:12px">
+        <button class="btn btn-primary" onclick="addMeetingMinute()">Save Minutes</button>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-family:var(--font-d);font-size:18px;font-weight:600;color:var(--t0)">
+        Minutes Log <span style="font-size:14px;font-weight:400;color:var(--t2);font-style:italic">${mins.length} entr${mins.length===1?'y':'ies'}</span>
+      </div>
+    </div>
+
+    <input type="text" class="form-input" id="mm-search"
+      placeholder="Search by title, category, notes, or action items…"
+      value="${state.mmSearch.replace(/"/g,'&quot;')}"
+      oninput="filterMeetingMinutes(this.value)"
+      style="margin-bottom:12px">
+
+    <div id="mm-minutes-list" style="display:flex;flex-direction:column;gap:10px">
+      ${renderMeetingMinuteCards(mins, state.mmSearch)}
     </div>
   </div>`;
 };
@@ -1659,6 +1766,56 @@ function goToOto(mid) {
 }
 
 // ─── TEAM NOTES ──────────────────────────────────────────────────────────────
+function renderTeamNoteCards(notes, query) {
+  const q = (query || '').toLowerCase().trim();
+  const filtered = q
+    ? notes.filter(n =>
+        (n.title || '').toLowerCase().includes(q) ||
+        (n.text  || '').toLowerCase().includes(q))
+    : notes;
+  if (!filtered.length) {
+    return q
+      ? `<div class="empty-state">No notes match "${query}".</div>`
+      : `<div class="empty-state">No team notes yet. Add the first one above.</div>`;
+  }
+  return filtered.map((n, i) => {
+    const realIndex = state.teamNotes.indexOf(n);
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:16px 20px;transition:border-color var(--tr)"
+      onmouseenter="this.style.borderColor='var(--border-md)'" onmouseleave="this.style.borderColor='var(--border)'">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px">
+        <div>
+          ${n.title ? `<div style="font-size:14px;font-weight:600;color:var(--t0);margin-bottom:4px">${n.title}</div>` : ''}
+          <div class="log-date" style="margin-bottom:0">${fmtDatetime(n.datetime)}</div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button onclick="openEditTeamNote(${realIndex})" style="background:none;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;color:var(--t2);font-size:11px;padding:2px 8px;transition:all var(--tr)" onmouseenter="this.style.borderColor='var(--border-md)';this.style.color='var(--t1)'" onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--t2)'">Edit</button>
+          <button onclick="confirmDeleteTeamNote(${realIndex})" style="background:none;border:1px solid transparent;border-radius:var(--r);cursor:pointer;color:var(--t2);font-size:11px;padding:2px 6px;transition:all var(--tr)" onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--t2)'" title="Delete">✕</button>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--t1);line-height:1.8;white-space:pre-wrap;max-height:144px;overflow-y:auto;padding-right:4px">${renderNoteText(n.text)}</div>
+      ${n.attendees?.length ? `
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:10px;margin-top:10px;border-top:1px solid var(--border)">
+          <span style="font-size:11px;color:var(--t2);white-space:nowrap;letter-spacing:0.04em;text-transform:uppercase">Present:</span>
+          ${n.attendees.map(mid => {
+            const m = getMember(mid);
+            return `<button onclick="goToOto('${mid}')" style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;
+              background:linear-gradient(135deg,${m.color}18,${m.color}08);border:1px solid ${m.color}33;
+              color:var(--t1);font-size:11px;cursor:pointer;transition:all var(--tr)"
+              title="Open ${m.name}'s 1:1 notes">
+              <span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,${m.color}cc,${m.color}66);display:inline-flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff">${m.initials}</span>
+              ${m.name}
+            </button>`;
+          }).join('')}
+        </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function filterTeamNotes(q) {
+  state.tnSearch = q;
+  document.getElementById('tn-notes-list').innerHTML = renderTeamNoteCards(state.teamNotes, q);
+}
+
 function toggleAttendee(mid) {
   const btn = document.getElementById('att-' + mid);
   const names = document.getElementById('att-names');
@@ -1679,17 +1836,230 @@ function toggleAttendee(mid) {
 
 function addTeamNote() {
   const text = document.getElementById('tn-text').value.trim();
+  const title = document.getElementById('tn-title').value.trim();
   if (!text) { showToast('Please write something before logging'); return; }
   const taggedMembers = extractMentions(text);
   const attendees = [...state.tnAttendees];
-  state.teamNotes.unshift({ datetime: new Date().toISOString(), text, taggedMembers, attendees });
+  state.teamNotes.unshift({ datetime: new Date().toISOString(), title, text, taggedMembers, attendees });
   state.tnAttendees = [];
+  state.tnSearch = '';
   showToast('Team note logged', 'success');
   navigate('teamnotes');
 }
+function confirmDeleteTeamNote(i) {
+  openModal(
+    '<h2>Delete Note</h2>',
+    `<div style="font-size:13px;color:var(--t1)">Are you sure you want to delete this note? This cannot be undone.</div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-danger" onclick="deleteTeamNote(${i})">Delete</button>`
+  );
+}
 function deleteTeamNote(i) {
   state.teamNotes.splice(i, 1);
+  closeModal();
   navigate('teamnotes');
+}
+function openEditTeamNote(i) {
+  const n = state.teamNotes[i];
+  openModal(
+    '<h2>Edit Team Note</h2>',
+    `<div class="form-row"><label>Title</label><input type="text" class="form-input" id="etn-title" placeholder="Meeting title (optional)"></div>
+     <div class="form-row"><label>Notes</label><textarea class="form-textarea" id="etn-text" style="min-height:140px"></textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveTeamNoteEdit(${i})">Save Changes</button>`
+  );
+  document.getElementById('etn-title').value = n.title || '';
+  document.getElementById('etn-text').value  = n.text  || '';
+}
+function saveTeamNoteEdit(i) {
+  const text = document.getElementById('etn-text').value.trim();
+  if (!text) { showToast('Notes cannot be empty'); return; }
+  state.teamNotes[i].title = document.getElementById('etn-title').value.trim();
+  state.teamNotes[i].text  = text;
+  state.teamNotes[i].taggedMembers = extractMentions(text);
+  closeModal();
+  showToast('Note updated', 'success');
+  navigate('teamnotes');
+}
+
+// ─── MEETING MINUTES ──────────────────────────────────────────────────────────
+function mmCategoryStyle(cat) {
+  const s = {
+    'General':     'background:rgba(100,116,139,0.15);border:1px solid rgba(100,116,139,0.3);color:#94a3b8',
+    'Project':     'background:rgba(246,166,35,0.12);border:1px solid rgba(246,166,35,0.35);color:#f6a623',
+    'Problem':     'background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#f87171',
+    'Stakeholder': 'background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);color:#c084fc',
+    'Executive':   'background:rgba(79,142,247,0.12);border:1px solid rgba(79,142,247,0.3);color:#7eb3fa',
+    'Ad-hoc':      'background:var(--bg4);border:1px solid var(--border-md);color:var(--t2)',
+  };
+  return s[cat] || s['General'];
+}
+
+function renderMeetingMinuteCards(minutes, query) {
+  const q = (query || '').toLowerCase().trim();
+  const filtered = q
+    ? minutes.filter(n =>
+        (n.title       || '').toLowerCase().includes(q) ||
+        (n.category    || '').toLowerCase().includes(q) ||
+        (n.notes       || '').toLowerCase().includes(q) ||
+        (n.actionItems || '').toLowerCase().includes(q) ||
+        (n.external    || '').toLowerCase().includes(q))
+    : minutes;
+  if (!filtered.length) {
+    return q
+      ? `<div class="empty-state">No minutes match "${query}".</div>`
+      : `<div class="empty-state">No meeting minutes yet. Log the first one above.</div>`;
+  }
+  return filtered.map(n => {
+    const realIndex = state.meetingMinutes.indexOf(n);
+    const proj = n.projectId ? state.projects.find(p=>p.id===n.projectId) : null;
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:16px 20px;transition:border-color var(--tr)"
+      onmouseenter="this.style.borderColor='var(--border-md)'" onmouseleave="this.style.borderColor='var(--border)'">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;letter-spacing:0.03em;${mmCategoryStyle(n.category)}">${n.category}</span>
+            ${proj ? `<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--bg5);border:1px solid var(--border-md);color:var(--t2)">${proj.name}</span>` : ''}
+          </div>
+          <div style="font-size:15px;font-weight:600;color:var(--t0);margin-bottom:3px">${n.title}</div>
+          <div class="log-date" style="margin-bottom:0">${fmtDatetime(n.datetime)}</div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button onclick="openEditMeetingMinute(${realIndex})" style="background:none;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;color:var(--t2);font-size:11px;padding:2px 8px;transition:all var(--tr)" onmouseenter="this.style.borderColor='var(--border-md)';this.style.color='var(--t1)'" onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--t2)'">Edit</button>
+          <button onclick="confirmDeleteMeetingMinute(${realIndex})" style="background:none;border:1px solid transparent;border-radius:var(--r);cursor:pointer;color:var(--t2);font-size:11px;padding:2px 6px;transition:all var(--tr)" onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--t2)'" title="Delete">✕</button>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--t1);line-height:1.8;white-space:pre-wrap;max-height:144px;overflow-y:auto;padding-right:4px">${n.notes}</div>
+      ${n.actionItems ? `
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:5px;font-weight:500">Action Items</div>
+          <div style="font-size:13px;color:var(--t1);line-height:1.8;white-space:pre-wrap;max-height:144px;overflow-y:auto;padding-right:4px">${n.actionItems}</div>
+        </div>` : ''}
+      ${(n.attendees?.length || n.external) ? `
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:10px;margin-top:10px;border-top:1px solid var(--border)">
+          <span style="font-size:11px;color:var(--t2);white-space:nowrap;letter-spacing:0.04em;text-transform:uppercase">Attendees:</span>
+          ${(n.attendees||[]).map(mid=>{
+            const m=getMember(mid);
+            if(!m) return '';
+            return `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;
+              background:linear-gradient(135deg,${m.color}18,${m.color}08);border:1px solid ${m.color}33;
+              color:var(--t1);font-size:11px">
+              <span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,${m.color}cc,${m.color}66);display:inline-flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff">${m.initials}</span>
+              ${m.name}
+            </span>`;
+          }).join('')}
+          ${n.external ? `<span style="font-size:11px;color:var(--t2);font-style:italic">${n.external}</span>` : ''}
+        </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function filterMeetingMinutes(q) {
+  state.mmSearch = q;
+  document.getElementById('mm-minutes-list').innerHTML = renderMeetingMinuteCards(state.meetingMinutes, q);
+}
+
+
+function toggleMmAttendee(mid) {
+  const btn = document.getElementById('mm-att-' + mid);
+  const m = getMember(mid);
+  if (state.mmAttendees.includes(mid)) {
+    state.mmAttendees = state.mmAttendees.filter(x=>x!==mid);
+    btn.style.background = 'var(--bg5)';
+    btn.style.borderColor = 'transparent';
+    btn.style.color = 'var(--t1)';
+  } else {
+    state.mmAttendees.push(mid);
+    btn.style.background = `linear-gradient(135deg,${m.color}cc,${m.color}66)`;
+    btn.style.borderColor = m.color;
+    btn.style.color = '#fff';
+  }
+  document.getElementById('mm-att-names').innerHTML =
+    state.mmAttendees.map(id=>getMember(id)?.name).filter(Boolean).join(', ') ||
+    '<span style="font-style:italic">No one selected</span>';
+}
+
+function addMeetingMinute() {
+  const title    = document.getElementById('mm-title').value.trim();
+  const notes    = document.getElementById('mm-notes').value.trim();
+  const category = document.getElementById('mm-category').value;
+  const projectId= document.getElementById('mm-project').value;
+  const actionItems = document.getElementById('mm-actions').value.trim();
+  const external = document.getElementById('mm-external').value.trim();
+  if (!title) { showToast('Please enter a meeting title'); return; }
+  if (!notes) { showToast('Please add discussion notes'); return; }
+  const attendees = [...state.mmAttendees];
+  state.meetingMinutes.unshift({ datetime: new Date().toISOString(), title, category, projectId, notes, actionItems, attendees, external });
+  state.mmAttendees = [];
+  state.mmSearch = '';
+  showToast('Meeting minutes saved', 'success');
+  navigate('minutes');
+}
+
+function confirmDeleteMeetingMinute(i) {
+  openModal(
+    '<h2>Delete Minutes</h2>',
+    `<div style="font-size:13px;color:var(--t1)">Are you sure you want to delete these meeting minutes? This cannot be undone.</div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-danger" onclick="deleteMeetingMinute(${i})">Delete</button>`
+  );
+}
+function deleteMeetingMinute(i) {
+  state.meetingMinutes.splice(i, 1);
+  closeModal();
+  navigate('minutes');
+}
+function openEditMeetingMinute(i) {
+  const n = state.meetingMinutes[i];
+  openModal(
+    '<h2>Edit Meeting Minutes</h2>',
+    `<div class="form-row"><label>Title</label><input type="text" class="form-input" id="emm-title"></div>
+     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+       <div class="form-row"><label>Category</label>
+         <select class="form-select" id="emm-category">
+           <option value="General">General</option>
+           <option value="Project">Project</option>
+           <option value="Problem">Problem / Incident</option>
+           <option value="Stakeholder">Stakeholder</option>
+           <option value="Executive">Executive</option>
+           <option value="Ad-hoc">Ad-hoc</option>
+         </select>
+       </div>
+       <div class="form-row"><label>Related Project</label>
+         <select class="form-select" id="emm-project">
+           <option value="">— None —</option>
+           ${state.projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}
+         </select>
+       </div>
+     </div>
+     <div class="form-row"><label>Discussion / Notes</label><textarea class="form-textarea" id="emm-notes" style="min-height:110px"></textarea></div>
+     <div class="form-row"><label>Action Items</label><textarea class="form-textarea" id="emm-actions" style="min-height:70px"></textarea></div>
+     <div class="form-row"><label>External Attendees</label><input type="text" class="form-input" id="emm-external"></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveMeetingMinuteEdit(${i})">Save Changes</button>`
+  );
+  document.getElementById('emm-title').value    = n.title      || '';
+  document.getElementById('emm-category').value = n.category   || 'General';
+  document.getElementById('emm-project').value  = n.projectId  || '';
+  document.getElementById('emm-notes').value    = n.notes      || '';
+  document.getElementById('emm-actions').value  = n.actionItems|| '';
+  document.getElementById('emm-external').value = n.external   || '';
+}
+function saveMeetingMinuteEdit(i) {
+  const title = document.getElementById('emm-title').value.trim();
+  const notes = document.getElementById('emm-notes').value.trim();
+  if (!title) { showToast('Title cannot be empty'); return; }
+  if (!notes) { showToast('Notes cannot be empty'); return; }
+  const n = state.meetingMinutes[i];
+  n.title       = title;
+  n.category    = document.getElementById('emm-category').value;
+  n.projectId   = document.getElementById('emm-project').value;
+  n.notes       = notes;
+  n.actionItems = document.getElementById('emm-actions').value.trim();
+  n.external    = document.getElementById('emm-external').value.trim();
+  closeModal();
+  showToast('Minutes updated', 'success');
+  navigate('minutes');
 }
 
 // ─── @MENTION SYSTEM ─────────────────────────────────────────────────────────
@@ -2600,6 +2970,7 @@ function getExportPayload() {
     risks: state.risks,
     team: state.team,
     teamNotes: state.teamNotes,
+    meetingMinutes: state.meetingMinutes,
   };
 }
 
@@ -2705,7 +3076,8 @@ function confirmImport(data) {
   if (data.tasks)      state.tasks      = data.tasks;
   if (data.risks)      state.risks      = data.risks;
   if (data.team)       state.team       = data.team;
-  if (data.teamNotes)  state.teamNotes  = data.teamNotes;
+  if (data.teamNotes)      state.teamNotes      = data.teamNotes;
+  if (data.meetingMinutes) state.meetingMinutes = data.meetingMinutes;
   state.selectedPerson = state.team[0]?.id || 'M1';
   document.getElementById('risk-badge').textContent = state.risks.filter(r=>r.status!=='Closed').length;
   closeModal();
