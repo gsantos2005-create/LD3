@@ -673,7 +673,7 @@ td:first-child{color:var(--t0);font-weight:500}
     <div class="sidebar-logo">
       <div class="logo-mark">L</div>
       <div>
-        <div class="logo-text">LeadOS<span class="logo-version">v0.12</span></div>
+        <div class="logo-text">LeadOS<span class="logo-version">v0.13</span></div>
         <div class="logo-sub">Command Center</div>
       </div>
     </div>
@@ -925,6 +925,7 @@ const state = {
   meetingMinutes: [],
   mmAttendees: [],
   mmSearch: '',
+  otoSearch: '',
   riskFilter: 'all',
   selectedPerson: 'M1',
   tasks: JSON.parse(JSON.stringify(TASKS)),
@@ -1548,23 +1549,28 @@ views.oto = function() {
           <textarea class="notes-area" id="notes-input-${m.id}" placeholder="Add a note…" style="min-height:72px;resize:vertical;flex:1"></textarea>
           <button class="btn btn-primary" style="align-self:flex-end;white-space:nowrap" onclick="addLeaderNote('${m.id}')">Log Note</button>
         </div>
-        <div class="log-scroll" style="display:flex;flex-direction:column;gap:6px">
-          ${(m.notesLog||[]).length ? (m.notesLog||[]).map((e,i)=>`
-            <div class="log-entry" style="position:relative">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-                <div class="log-date">${fmtDatetime(e.datetime)}</div>
-                <button onclick="deleteLeaderNote('${m.id}',${i})" style="background:none;border:none;cursor:pointer;color:var(--t2);font-size:11px;padding:0 2px;line-height:1" title="Delete note">✕</button>
-              </div>
-              <div class="log-text">${e.text}</div>
-            </div>
-          `).join('') : `<div style="color:var(--t2);font-size:12px;padding:4px 0">No notes yet. Add the first one above.</div>`}
+        <input type="text" class="form-input" id="oto-search-${m.id}"
+          placeholder="Search notes…"
+          value="${state.otoSearch.replace(/"/g,'&quot;')}"
+          oninput="filterOtoNotes('${m.id}',this.value)"
+          style="margin-bottom:10px">
+        <div class="log-scroll" id="oto-notes-list-${m.id}" style="display:flex;flex-direction:column;gap:6px">
+          ${renderLeaderNoteEntries(m.id, state.otoSearch)}
         </div>
       </div>
 
       <div class="card">
         <div class="card-title"><span>Development Goals</span><button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="addGoal('${m.id}')">+ Goal</button></div>
         <ul class="goals-list log-scroll">
-          ${m.goals.map((g,i)=>`<li onclick="editGoalInline(this,'${m.id}',${i})" style="cursor:text">${g}</li>`).join('')}
+          ${m.goals.length ? m.goals.map((g,i)=>`
+            <li style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;cursor:default">
+              <span style="flex:1">${g}</span>
+              <div style="display:flex;gap:4px;flex-shrink:0;margin-top:1px">
+                <button onclick="openEditGoal('${m.id}',${i})" style="background:none;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;color:var(--t2);font-size:11px;padding:1px 7px;transition:all var(--tr)" onmouseenter="this.style.borderColor='var(--border-md)';this.style.color='var(--t1)'" onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--t2)'">Edit</button>
+                <button onclick="confirmDeleteGoal('${m.id}',${i})" style="background:none;border:1px solid transparent;border-radius:var(--r);cursor:pointer;color:var(--t2);font-size:11px;padding:1px 6px;transition:all var(--tr)" onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--t2)'" title="Delete">✕</button>
+              </div>
+            </li>`).join('')
+          : `<li style="color:var(--t2);font-size:12px;list-style:none">No goals added yet.</li>`}
         </ul>
       </div>
 
@@ -1582,21 +1588,33 @@ views.oto = function() {
 
       <div class="card">
         <div class="card-title"><span>Coaching Log</span><button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="addCoachingEntry('${m.id}')">+ Entry</button></div>
-        <div class="log-scroll">${m.coachingLog.length?m.coachingLog.map(e=>`
+        <div class="log-scroll">${m.coachingLog.length?m.coachingLog.map((e,i)=>`
           <div class="log-entry">
-            <div class="log-date">${fmtDate(e.date)}</div>
-            <div class="log-text">${e.note}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+              <div class="log-date" style="margin-bottom:0">${fmtDate(e.date)}</div>
+              <div style="display:flex;gap:4px">
+                <button onclick="openEditCoachingEntry('${m.id}',${i})" style="background:none;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;color:var(--t2);font-size:11px;padding:1px 7px;transition:all var(--tr)" onmouseenter="this.style.borderColor='var(--border-md)';this.style.color='var(--t1)'" onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--t2)'">Edit</button>
+                <button onclick="confirmDeleteCoachingEntry('${m.id}',${i})" style="background:none;border:1px solid transparent;border-radius:var(--r);cursor:pointer;color:var(--t2);font-size:11px;padding:1px 6px;transition:all var(--tr)" onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--t2)'" title="Delete">✕</button>
+              </div>
+            </div>
+            <div class="log-text" style="max-height:144px;overflow-y:auto;padding-right:4px">${e.note}</div>
           </div>
         `).join(''):`<div style="color:var(--t2);font-size:12px;padding:8px 0">No coaching entries yet.</div>`}</div>
       </div>
 
       <div class="card one-full">
         <div class="card-title"><span>Decision Log</span><button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="addDecision('${m.id}')">+ Decision</button></div>
-        ${m.decisionLog.length?m.decisionLog.map(e=>`
+        ${m.decisionLog.length?m.decisionLog.map((e,i)=>`
           <div class="decision-entry">
-            <div class="log-date">${fmtDate(e.date)}</div>
-            <div class="log-text">${e.decision}</div>
-            <div class="decision-rationale">Rationale: ${e.rationale}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+              <div class="log-date" style="margin-bottom:0">${fmtDate(e.date)}</div>
+              <div style="display:flex;gap:4px">
+                <button onclick="openEditDecision('${m.id}',${i})" style="background:none;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;color:var(--t2);font-size:11px;padding:1px 7px;transition:all var(--tr)" onmouseenter="this.style.borderColor='var(--border-md)';this.style.color='var(--t1)'" onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--t2)'">Edit</button>
+                <button onclick="confirmDeleteDecision('${m.id}',${i})" style="background:none;border:1px solid transparent;border-radius:var(--r);cursor:pointer;color:var(--t2);font-size:11px;padding:1px 6px;transition:all var(--tr)" onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--t2)'" title="Delete">✕</button>
+              </div>
+            </div>
+            <div class="log-text" style="max-height:144px;overflow-y:auto;padding-right:4px">${e.decision}</div>
+            <div class="decision-rationale" style="max-height:100px;overflow-y:auto;padding-right:4px">Rationale: ${e.rationale}</div>
           </div>
         `).join(''):`<div style="color:var(--t2);font-size:12px;padding:8px 0">No decisions logged yet.</div>`}
       </div>
@@ -2872,6 +2890,7 @@ function deleteRisk(rid) {
 // ─── 1:1 ACTIONS ─────────────────────────────────────────────────────────────
 function selectPerson(mid) {
   state.selectedPerson = mid;
+  state.otoSearch = '';
   navigate('oto');
 }
 function addLeaderNote(mid) {
@@ -2885,10 +2904,136 @@ function addLeaderNote(mid) {
   showToast('Note logged', 'success');
   navigate('oto');
 }
+function renderLeaderNoteEntries(mid, query) {
+  const m = state.team.find(x=>x.id===mid);
+  const notes = m?.notesLog || [];
+  const q = (query||'').toLowerCase().trim();
+  const filtered = q ? notes.filter(e=>(e.text||'').toLowerCase().includes(q)) : notes;
+  if (!filtered.length) return q
+    ? `<div style="color:var(--t2);font-size:12px;padding:4px 0">No notes match "${query}".</div>`
+    : `<div style="color:var(--t2);font-size:12px;padding:4px 0">No notes yet. Add the first one above.</div>`;
+  return filtered.map(e => {
+    const i = notes.indexOf(e);
+    return `<div class="log-entry">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div class="log-date" style="margin-bottom:0">${fmtDatetime(e.datetime)}</div>
+        <div style="display:flex;gap:4px">
+          <button onclick="openEditLeaderNote('${mid}',${i})" style="background:none;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;color:var(--t2);font-size:11px;padding:1px 7px;transition:all var(--tr)" onmouseenter="this.style.borderColor='var(--border-md)';this.style.color='var(--t1)'" onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--t2)'">Edit</button>
+          <button onclick="confirmDeleteLeaderNote('${mid}',${i})" style="background:none;border:1px solid transparent;border-radius:var(--r);cursor:pointer;color:var(--t2);font-size:11px;padding:1px 6px;transition:all var(--tr)" onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--t2)'" title="Delete">✕</button>
+        </div>
+      </div>
+      <div class="log-text" style="max-height:144px;overflow-y:auto;padding-right:4px">${e.text}</div>
+    </div>`;
+  }).join('');
+}
+function filterOtoNotes(mid, q) {
+  state.otoSearch = q;
+  document.getElementById(`oto-notes-list-${mid}`).innerHTML = renderLeaderNoteEntries(mid, q);
+}
+function confirmDeleteLeaderNote(mid, i) {
+  openModal(
+    '<h2>Delete Note</h2>',
+    `<div style="font-size:13px;color:var(--t1)">Are you sure you want to delete this note? This cannot be undone.</div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-danger" onclick="deleteLeaderNote('${mid}',${i})">Delete</button>`
+  );
+}
 function deleteLeaderNote(mid, index) {
   const m = state.team.find(x=>x.id===mid);
   if (!m?.notesLog) return;
   m.notesLog.splice(index, 1);
+  closeModal();
+  navigate('oto');
+}
+function openEditLeaderNote(mid, i) {
+  const m = state.team.find(x=>x.id===mid);
+  const e = m.notesLog[i];
+  openModal(
+    '<h2>Edit Leader Note</h2>',
+    `<div class="form-row"><label>Note</label><textarea class="form-textarea" id="eln-text" style="min-height:140px"></textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveLeaderNoteEdit('${mid}',${i})">Save Changes</button>`
+  );
+  document.getElementById('eln-text').value = e.text || '';
+}
+function saveLeaderNoteEdit(mid, i) {
+  const text = document.getElementById('eln-text').value.trim();
+  if (!text) { showToast('Note cannot be empty'); return; }
+  const m = state.team.find(x=>x.id===mid);
+  m.notesLog[i].text = text;
+  closeModal();
+  showToast('Note updated', 'success');
+  navigate('oto');
+}
+function confirmDeleteCoachingEntry(mid, i) {
+  openModal(
+    '<h2>Delete Coaching Entry</h2>',
+    `<div style="font-size:13px;color:var(--t1)">Are you sure you want to delete this coaching entry? This cannot be undone.</div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-danger" onclick="deleteCoachingEntry('${mid}',${i})">Delete</button>`
+  );
+}
+function deleteCoachingEntry(mid, i) {
+  const m = state.team.find(x=>x.id===mid);
+  m.coachingLog.splice(i, 1);
+  closeModal();
+  navigate('oto');
+}
+function openEditCoachingEntry(mid, i) {
+  const m = state.team.find(x=>x.id===mid);
+  const e = m.coachingLog[i];
+  openModal(
+    '<h2>Edit Coaching Entry</h2>',
+    `<div class="form-row"><label>Note</label><textarea class="form-textarea" id="ece-note" style="min-height:140px"></textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveCoachingEntryEdit('${mid}',${i})">Save Changes</button>`
+  );
+  document.getElementById('ece-note').value = e.note || '';
+}
+function saveCoachingEntryEdit(mid, i) {
+  const note = document.getElementById('ece-note').value.trim();
+  if (!note) { showToast('Note cannot be empty'); return; }
+  const m = state.team.find(x=>x.id===mid);
+  m.coachingLog[i].note = note;
+  closeModal();
+  showToast('Coaching entry updated', 'success');
+  navigate('oto');
+}
+function confirmDeleteDecision(mid, i) {
+  openModal(
+    '<h2>Delete Decision</h2>',
+    `<div style="font-size:13px;color:var(--t1)">Are you sure you want to delete this decision? This cannot be undone.</div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-danger" onclick="deleteDecision('${mid}',${i})">Delete</button>`
+  );
+}
+function deleteDecision(mid, i) {
+  const m = state.team.find(x=>x.id===mid);
+  m.decisionLog.splice(i, 1);
+  closeModal();
+  navigate('oto');
+}
+function openEditDecision(mid, i) {
+  const m = state.team.find(x=>x.id===mid);
+  const e = m.decisionLog[i];
+  openModal(
+    '<h2>Edit Decision</h2>',
+    `<div class="form-row"><label>Decision</label><textarea class="form-textarea" id="ede-dec" style="min-height:100px"></textarea></div>
+     <div class="form-row"><label>Rationale</label><textarea class="form-textarea" id="ede-rat" style="min-height:80px"></textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveDecisionEdit('${mid}',${i})">Save Changes</button>`
+  );
+  document.getElementById('ede-dec').value = e.decision  || '';
+  document.getElementById('ede-rat').value = e.rationale || '';
+}
+function saveDecisionEdit(mid, i) {
+  const dec = document.getElementById('ede-dec').value.trim();
+  if (!dec) { showToast('Decision cannot be empty'); return; }
+  const m = state.team.find(x=>x.id===mid);
+  m.decisionLog[i].decision  = dec;
+  m.decisionLog[i].rationale = document.getElementById('ede-rat').value.trim() || '—';
+  closeModal();
+  showToast('Decision updated', 'success');
   navigate('oto');
 }
 function addGoal(mid) {
@@ -2907,6 +3052,40 @@ function saveGoal(mid) {
   m.goals.push(g);
   closeModal();
   showToast('Goal added','success');
+  navigate('oto');
+}
+function openEditGoal(mid, i) {
+  const m = state.team.find(x=>x.id===mid);
+  openModal(
+    '<h2>Edit Goal</h2>',
+    `<div class="form-row"><label>Goal</label><input type="text" class="form-input" id="eg-goal"></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveGoalEdit('${mid}',${i})">Save Changes</button>`
+  );
+  document.getElementById('eg-goal').value = m.goals[i] || '';
+}
+function saveGoalEdit(mid, i) {
+  const g = document.getElementById('eg-goal').value.trim();
+  if (!g) { showToast('Goal cannot be empty'); return; }
+  const m = state.team.find(x=>x.id===mid);
+  m.goals[i] = g;
+  closeModal();
+  showToast('Goal updated', 'success');
+  navigate('oto');
+}
+function confirmDeleteGoal(mid, i) {
+  openModal(
+    '<h2>Delete Goal</h2>',
+    `<div style="font-size:13px;color:var(--t1)">Are you sure you want to delete this goal? This cannot be undone.</div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-danger" onclick="deleteGoal('${mid}',${i})">Delete</button>`
+  );
+}
+function deleteGoal(mid, i) {
+  const m = state.team.find(x=>x.id===mid);
+  m.goals.splice(i, 1);
+  closeModal();
+  showToast('Goal removed', 'success');
   navigate('oto');
 }
 function addCoachingEntry(mid) {
