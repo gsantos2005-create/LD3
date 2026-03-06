@@ -673,7 +673,7 @@ td:first-child{color:var(--t0);font-weight:500}
     <div class="sidebar-logo">
       <div class="logo-mark">L</div>
       <div>
-        <div class="logo-text">LeadOS<span class="logo-version">v0.13</span></div>
+        <div class="logo-text">LeadOS<span class="logo-version">v0.14</span></div>
         <div class="logo-sub">Command Center</div>
       </div>
     </div>
@@ -1577,12 +1577,18 @@ views.oto = function() {
       <div class="card">
         <div class="card-title"><span>Strengths & Growth Areas</span></div>
         <div style="margin-bottom:12px">
-          <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px">Strengths</div>
-          <div class="tag-list">${m.strengths.map(s=>`<span class="tag tag-strength">${s}</span>`).join('')}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:0.07em">Strengths</div>
+            <button onclick="addStrength('${m.id}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--t2);padding:0;font-family:var(--font-u);transition:color var(--tr)" onmouseenter="this.style.color='var(--t0)'" onmouseleave="this.style.color='var(--t2)'">+ Add</button>
+          </div>
+          <div class="tag-list">${m.strengths.map((s,i)=>`<span class="tag tag-strength" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px" onclick="openEditStrength('${m.id}',${i})" onmouseenter="this.querySelector('.tdel').style.opacity='1'" onmouseleave="this.querySelector('.tdel').style.opacity='0'" title="Click to edit">${s}<span class="tdel" onclick="event.stopPropagation();confirmDeleteStrength('${m.id}',${i})" style="opacity:0;font-size:10px;font-weight:700;line-height:1;transition:opacity 0.15s">×</span></span>`).join('')}</div>
         </div>
         <div>
-          <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px">Growth Areas</div>
-          <div class="tag-list">${m.growth.map(g=>`<span class="tag tag-growth">${g}</span>`).join('')}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:0.07em">Growth Areas</div>
+            <button onclick="addGrowth('${m.id}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--t2);padding:0;font-family:var(--font-u);transition:color var(--tr)" onmouseenter="this.style.color='var(--t0)'" onmouseleave="this.style.color='var(--t2)'">+ Add</button>
+          </div>
+          <div class="tag-list">${m.growth.map((g,i)=>`<span class="tag tag-growth" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px" onclick="openEditGrowth('${m.id}',${i})" onmouseenter="this.querySelector('.tdel').style.opacity='1'" onmouseleave="this.querySelector('.tdel').style.opacity='0'" title="Click to edit">${g}<span class="tdel" onclick="event.stopPropagation();confirmDeleteGrowth('${m.id}',${i})" style="opacity:0;font-size:10px;font-weight:700;line-height:1;transition:opacity 0.15s">×</span></span>`).join('')}</div>
         </div>
       </div>
 
@@ -3087,6 +3093,78 @@ function deleteGoal(mid, i) {
   closeModal();
   showToast('Goal removed', 'success');
   navigate('oto');
+}
+function addStrength(mid) {
+  openModal('<h2>Add Strength</h2>',
+    `<div class="form-row"><label>Strength</label><input type="text" class="form-input" id="s-val" placeholder="e.g. Clear communicator"></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveStrength('${mid}')">Add</button>`);
+}
+function saveStrength(mid) {
+  const v = document.getElementById('s-val').value.trim();
+  if (!v) return;
+  state.team.find(x=>x.id===mid).strengths.push(v);
+  closeModal(); showToast('Strength added','success'); navigate('oto');
+}
+function openEditStrength(mid, i) {
+  const m = state.team.find(x=>x.id===mid);
+  openModal('<h2>Edit Strength</h2>',
+    `<div class="form-row"><label>Strength</label><input type="text" class="form-input" id="es-val"></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveStrengthEdit('${mid}',${i})">Save</button>`);
+  document.getElementById('es-val').value = m.strengths[i];
+}
+function saveStrengthEdit(mid, i) {
+  const v = document.getElementById('es-val').value.trim();
+  if (!v) { showToast('Cannot be empty'); return; }
+  state.team.find(x=>x.id===mid).strengths[i] = v;
+  closeModal(); showToast('Strength updated','success'); navigate('oto');
+}
+function confirmDeleteStrength(mid, i) {
+  openModal('<h2>Delete Strength</h2>',
+    `<div style="font-size:13px;color:var(--t1)">Remove this strength tag? This cannot be undone.</div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-danger" onclick="deleteStrength('${mid}',${i})">Delete</button>`);
+}
+function deleteStrength(mid, i) {
+  state.team.find(x=>x.id===mid).strengths.splice(i, 1);
+  closeModal(); showToast('Strength removed'); navigate('oto');
+}
+function addGrowth(mid) {
+  openModal('<h2>Add Growth Area</h2>',
+    `<div class="form-row"><label>Growth Area</label><input type="text" class="form-input" id="g-val" placeholder="e.g. Delegation skills"></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveGrowth('${mid}')">Add</button>`);
+}
+function saveGrowth(mid) {
+  const v = document.getElementById('g-val').value.trim();
+  if (!v) return;
+  state.team.find(x=>x.id===mid).growth.push(v);
+  closeModal(); showToast('Growth area added','success'); navigate('oto');
+}
+function openEditGrowth(mid, i) {
+  const m = state.team.find(x=>x.id===mid);
+  openModal('<h2>Edit Growth Area</h2>',
+    `<div class="form-row"><label>Growth Area</label><input type="text" class="form-input" id="eg-val"></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="saveGrowthEdit('${mid}',${i})">Save</button>`);
+  document.getElementById('eg-val').value = m.growth[i];
+}
+function saveGrowthEdit(mid, i) {
+  const v = document.getElementById('eg-val').value.trim();
+  if (!v) { showToast('Cannot be empty'); return; }
+  state.team.find(x=>x.id===mid).growth[i] = v;
+  closeModal(); showToast('Growth area updated','success'); navigate('oto');
+}
+function confirmDeleteGrowth(mid, i) {
+  openModal('<h2>Delete Growth Area</h2>',
+    `<div style="font-size:13px;color:var(--t1)">Remove this growth area tag? This cannot be undone.</div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-danger" onclick="deleteGrowth('${mid}',${i})">Delete</button>`);
+}
+function deleteGrowth(mid, i) {
+  state.team.find(x=>x.id===mid).growth.splice(i, 1);
+  closeModal(); showToast('Growth area removed'); navigate('oto');
 }
 function addCoachingEntry(mid) {
   openModal(
