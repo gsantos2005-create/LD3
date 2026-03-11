@@ -664,16 +664,90 @@ td:first-child{color:var(--t0);font-weight:500}
   .grid-3{grid-template-columns:repeat(2,1fr)}
   .one-grid{grid-template-columns:1fr}
 }
+
+/* ── LOGIN ─────────────────────────────────────────── */
+#login-overlay {
+  position:fixed; inset:0; z-index:9999;
+  background:var(--bg0);
+  display:flex; align-items:center; justify-content:center;
+}
+#login-box {
+  width:340px;
+  background:var(--bg2);
+  border:1px solid var(--border-md);
+  border-radius:var(--rl);
+  padding:40px 36px 36px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.5);
+  display:flex; flex-direction:column; gap:8px;
+}
+#login-logo {
+  font-family:var(--font-d);
+  font-size:2rem; font-weight:700;
+  color:var(--gold);
+  letter-spacing:.04em;
+  text-align:center;
+}
+#login-subtitle {
+  font-size:.72rem; color:var(--t2);
+  text-align:center; letter-spacing:.12em; text-transform:uppercase;
+  margin-bottom:20px;
+}
+.login-field {
+  display:flex; flex-direction:column; gap:6px; margin-bottom:14px;
+}
+.login-field label {
+  font-size:.72rem; color:var(--t1); letter-spacing:.06em; text-transform:uppercase;
+}
+.login-field input {
+  background:var(--bg4); border:1px solid var(--border-md);
+  border-radius:var(--rs); padding:10px 13px;
+  color:var(--t0); font-family:var(--font-u); font-size:.88rem;
+  outline:none; transition:border var(--tr);
+}
+.login-field input:focus { border-color:var(--gold); }
+#login-error {
+  font-size:.8rem; color:var(--red);
+  min-height:18px; margin-bottom:4px;
+}
+#login-btn {
+  width:100%; padding:11px;
+  background:var(--gold); color:#07080f;
+  border:none; border-radius:var(--rs);
+  font-family:var(--font-u); font-size:.9rem; font-weight:600;
+  cursor:pointer; transition:background var(--tr);
+}
+#login-btn:hover { background:var(--gold-l); }
 </style>
 </head>
 <body>
-<div id="app">
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div id="login-box">
+    <div id="login-logo">LeadOS</div>
+    <div id="login-subtitle">Leadership Command Center</div>
+    <form id="login-form" autocomplete="off">
+      <div class="login-field">
+        <label for="login-user">Username</label>
+        <input id="login-user" type="text" placeholder="Enter username" autocomplete="username" />
+      </div>
+      <div class="login-field">
+        <label for="login-pass">Password</label>
+        <input id="login-pass" type="password" placeholder="Enter password" autocomplete="current-password" />
+      </div>
+      <div id="login-error"></div>
+      <button type="submit" id="login-btn">Sign In</button>
+    </form>
+  </div>
+</div>
+
+<div id="app" style="display:none">
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-mark">L</div>
       <div>
-        <div class="logo-text">LeadOS<span class="logo-version">v0.14</span></div>
+        <div class="logo-text">LeadOS<span class="logo-version">v0.15</span></div>
         <div class="logo-sub">Command Center</div>
       </div>
     </div>
@@ -3378,6 +3452,34 @@ function toggleTheme() {
   document.getElementById('theme-icon-sun').style.display  = isLight ? ''     : 'none';
   localStorage.setItem('leados-theme', isLight ? 'light' : 'dark');
 }
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+(function setupLogin() {
+  const overlay = document.getElementById('login-overlay');
+  const app = document.getElementById('app');
+  const form = document.getElementById('login-form');
+  const errEl = document.getElementById('login-error');
+
+  if (sessionStorage.getItem('leados-auth') === '1') {
+    overlay.style.display = 'none';
+    app.style.display = '';
+    return;
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const user = document.getElementById('login-user').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    if (user === 'biohed' && pass === '1234') {
+      sessionStorage.setItem('leados-auth', '1');
+      overlay.style.display = 'none';
+      app.style.display = '';
+    } else {
+      errEl.textContent = 'Invalid username or password.';
+      document.getElementById('login-pass').value = '';
+    }
+  });
+})();
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 (function init() {
