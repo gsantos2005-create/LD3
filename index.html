@@ -665,6 +665,76 @@ td:first-child{color:var(--t0);font-weight:500}
   .one-grid{grid-template-columns:1fr}
 }
 
+/* ── MOBILE ────────────────────────────────────────── */
+.hamburger{
+  display:none;
+  width:36px;height:36px;border-radius:var(--r);
+  border:1px solid var(--border-md);background:var(--bg4);
+  color:var(--t1);cursor:pointer;
+  align-items:center;justify-content:center;
+  transition:all var(--tr);flex-shrink:0;
+}
+.hamburger:hover{background:var(--bg5);color:var(--t0);border-color:var(--border-hi)}
+.hamburger svg{width:18px;height:18px}
+
+#sidebar-overlay{
+  display:none;position:fixed;inset:0;z-index:9;
+  background:rgba(7,8,15,0.6);backdrop-filter:blur(2px);
+}
+
+@media(max-width:768px){
+  .hamburger{display:inline-flex}
+
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;z-index:10;
+    transform:translateX(-100%);
+    transition:transform 0.25s ease;
+    box-shadow:4px 0 32px rgba(0,0,0,0.5);
+  }
+  .sidebar.mobile-open{transform:translateX(0)}
+  #sidebar-overlay.visible{display:block}
+
+  .main-wrapper{width:100%}
+
+  .topbar{padding:0 14px;gap:10px}
+  .topbar-title{font-size:17px}
+  .topbar-title span{display:none}
+  .topbar-date{display:none}
+
+  .main-content{padding:14px}
+
+  .grid-4{grid-template-columns:1fr 1fr}
+  .grid-3{grid-template-columns:1fr}
+  .grid-2{grid-template-columns:1fr}
+  .grid-2-3{grid-template-columns:1fr}
+  .one-grid{grid-template-columns:1fr}
+
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:680px}
+
+  .modal{width:95vw;max-width:95vw;margin:0 auto}
+
+  .filter-bar{gap:7px}
+  .filter-select,.search-input{font-size:12px;padding:6px 10px}
+
+  .kpi-value{font-size:28px}
+
+  .person-selector{gap:6px}
+  .person-pill{padding:5px 10px;font-size:12px}
+
+  .data-btn span:not(.sr-only){display:none}
+}
+
+/* ── GUIDE ─────────────────────────────────────────── */
+.guide-body { font-size:13.5px; color:var(--t1); line-height:1.75; }
+.guide-body p { margin-bottom:10px; }
+.guide-body p:last-child { margin-bottom:0; }
+.guide-body h4 { font-size:12px; font-weight:600; color:var(--t0); text-transform:uppercase; letter-spacing:.06em; margin:16px 0 6px; }
+.guide-body ul, .guide-body ol { padding-left:20px; margin-bottom:10px; display:flex; flex-direction:column; gap:5px; }
+.guide-body li { color:var(--t1); }
+.guide-body strong { color:var(--t0); font-weight:600; }
+.guide-body code { font-family:var(--font-m); font-size:12px; background:var(--bg5); padding:1px 6px; border-radius:4px; color:var(--t1); }
+
 /* ── LOGIN ─────────────────────────────────────────── */
 #login-overlay {
   position:fixed; inset:0; z-index:9999;
@@ -741,13 +811,15 @@ td:first-child{color:var(--t0);font-weight:500}
   </div>
 </div>
 
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
 <div id="app" style="display:none">
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-mark">L</div>
       <div>
-        <div class="logo-text">LeadOS<span class="logo-version">v0.15</span></div>
+        <div class="logo-text">LeadOS<span class="logo-version">v0.16</span></div>
         <div class="logo-sub">Command Center</div>
       </div>
     </div>
@@ -787,6 +859,11 @@ td:first-child{color:var(--t0);font-weight:500}
         <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
         Meeting Minutes
       </div>
+      <div class="nav-label">Help</div>
+      <div class="nav-item" onclick="navigate('guide')" data-view="guide">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.255 0 2.443.29 3.5.804V4.804zM11 4.804A7.968 7.968 0 0114.5 4c1.255 0 2.443.29 3.5.804v10A7.969 7.969 0 0114.5 14c-1.255 0-2.443.29-3.5.804V4.804z"/></svg>
+        User Guide
+      </div>
     </nav>
     <div class="sidebar-footer">
       <div class="avatar-sm" style="background:linear-gradient(135deg,#4f8ef7,#2563eb)">VP</div>
@@ -800,6 +877,9 @@ td:first-child{color:var(--t0);font-weight:500}
   <!-- MAIN -->
   <div class="main-wrapper">
     <header class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()" title="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div class="topbar-title" id="topbar-title">Overview <span>Weekly Snapshot</span></div>
       <div class="topbar-date" id="topbar-date"></div>
       <div class="topbar-actions" id="topbar-actions"></div>
@@ -1073,6 +1153,18 @@ function showToast(msg, type='') {
   setTimeout(()=>t.className='toast',2800);
 }
 
+// ─── MOBILE SIDEBAR ───────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  const open = sb.classList.toggle('mobile-open');
+  ov.classList.toggle('visible', open);
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay').classList.remove('visible');
+}
+
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 const TITLES = {
   overview: ['Overview','Weekly Snapshot'],
@@ -1083,8 +1175,10 @@ const TITLES = {
   oto: ['1:1 Support','Coaching & Development'],
   teamnotes: ['Team Notes','Shared Leadership Log'],
   minutes:   ['Meeting Minutes','Formal Meeting Log'],
+  guide:     ['User Guide','How to use LeadOS'],
 };
 function navigate(view) {
+  closeSidebar();
   state.view = view;
   document.querySelectorAll('.nav-item').forEach(el=>{
     el.classList.toggle('active', el.dataset.view===view);
@@ -1848,6 +1942,276 @@ views.minutes = function() {
     </div>
   </div>`;
 };
+
+// ─── VIEW: USER GUIDE ─────────────────────────────────────────────────────────
+const GUIDE_SECTIONS = [
+  {
+    id: 'getting-started',
+    title: 'Getting Started',
+    icon: '🚀',
+    content: `
+      <p>Welcome to <strong>LeadOS</strong> — your personal leadership command center. LeadOS helps you track your team, manage projects, flag risks, and log 1:1 coaching conversations in one place.</p>
+      <h4>Logging In</h4>
+      <p>Enter your username and password on the login screen. Your session stays active until you close the browser tab. Next time you open the app, you will need to log in again.</p>
+      <h4>Navigation</h4>
+      <p>Use the left sidebar to move between sections. The active section is highlighted in gold. The top bar shows the current section name and any quick-action buttons (like "Add Risk" or "Add Task").</p>
+      <h4>Saving Your Data</h4>
+      <p>Your data is stored in your browser. To make sure nothing is lost, click the <strong>Data</strong> button in the top-right corner and choose <strong>Save to browser</strong>. When you return, your session will be automatically restored. You can also export your data to a JSON file as a backup.</p>
+    `
+  },
+  {
+    id: 'overview',
+    title: 'Overview',
+    icon: '📊',
+    content: `
+      <p>The <strong>Overview</strong> is your daily dashboard. It gives you a snapshot of the most important things happening right now.</p>
+      <h4>KPI Cards (top row)</h4>
+      <ul>
+        <li><strong>Team Members</strong> — total people on your team across all projects. Click to go to the Team view.</li>
+        <li><strong>Overloaded</strong> — number of team members at 100% or more capacity. Click to go to Workload.</li>
+        <li><strong>Open Risks</strong> — total active risks. Click to go to Risk Tracker.</li>
+        <li><strong>Critical This Week</strong> — high-priority tasks due within the next 7 days.</li>
+      </ul>
+      <h4>Top Risks</h4>
+      <p>Shows your highest-severity open risks. Red cards mean immediate action is needed. Click any card to go to the Risk Tracker.</p>
+      <h4>Critical Deadlines</h4>
+      <p>Lists high-priority tasks due within 7 days, color-coded by urgency: red = due in 2 days or less, amber = 3–5 days, green = 6–7 days.</p>
+      <h4>Team Capacity</h4>
+      <p>A quick bar chart of each team member's current workload. Green = healthy, Amber = near the limit (80–99%), Red = overloaded (100%+).</p>
+      <h4>Escalations</h4>
+      <p>If anyone is overloaded, an escalation card appears at the bottom with a "Resolve" button that takes you to Workload so you can reassign tasks.</p>
+      <h4>Overdue Risk Alert</h4>
+      <p>A red banner appears at the top of the page if any open risk has passed its due date. Take action immediately.</p>
+    `
+  },
+  {
+    id: 'team',
+    title: 'Team',
+    icon: '👥',
+    content: `
+      <p>The <strong>Team</strong> view shows a card for each team member with their current workload, task count, and a preview of their top tasks.</p>
+      <h4>Reading a Person Card</h4>
+      <ul>
+        <li><strong>Capacity bar</strong> — shows what percentage of their weekly hours are allocated. Green is fine, amber is getting full, red means overloaded.</li>
+        <li><strong>Stats row</strong> — Tasks (total assigned), High Pri (high-priority count), Hours (total allocated hours), Projects (how many projects they are on).</li>
+        <li><strong>Task preview</strong> — shows up to 2 of their tasks with risk indicators. Click the card to open their full 1:1 profile.</li>
+        <li><strong>Risk badge</strong> (top-right of card) — red means at least one of their tasks is high risk, amber means medium risk, green means all clear.</li>
+      </ul>
+      <h4>Adding a Team Member</h4>
+      <p>Click <strong>+ Add Member</strong> in the top-right. Fill in their name, role, and pick a color for their avatar.</p>
+      <h4>Editing a Team Member</h4>
+      <p>Click the pencil icon on their card. You can update their name, role, and color.</p>
+      <h4>Adding a Task from Team View</h4>
+      <p>Click <strong>+ Add Task</strong> in the top-right to create a new task and assign it to someone.</p>
+    `
+  },
+  {
+    id: 'workload',
+    title: 'Workload',
+    icon: '📈',
+    content: `
+      <p>The <strong>Workload</strong> view shows each team member's allocated hours and lets you reassign tasks by dragging and dropping.</p>
+      <h4>Reading the Workload View</h4>
+      <p>Each person has a capacity bar and a row of task chips showing their current assignments. The percentage and hours (e.g. 32h / 40h) are shown next to their name.</p>
+      <ul>
+        <li><strong>Green (≤80%)</strong> — healthy capacity, room for more work.</li>
+        <li><strong>Amber (80–99%)</strong> — near the limit. Be cautious about adding more.</li>
+        <li><strong>Red (100%+)</strong> — overloaded. Reassign tasks immediately.</li>
+      </ul>
+      <h4>Reassigning Tasks by Drag and Drop</h4>
+      <p>Grab any task chip and drag it to another person's task area. Their capacity will update instantly. The task chip shows the project color, task name, and hours.</p>
+      <h4>Capacity Legend</h4>
+      <p>A legend bar at the top of the page explains the color coding: Green ≤80%, Amber 80–99%, Red 100%+.</p>
+    `
+  },
+  {
+    id: 'projects',
+    title: 'Projects',
+    icon: '📁',
+    content: `
+      <p>The <strong>Projects</strong> view is split into two parts: project cards at the top and a task table below.</p>
+      <h4>Project Cards</h4>
+      <p>Each card shows the project name, description, business function, status badge, business priority pips (1–5 dots), regulatory risk, task count, and deadline. Click a card to filter the task table to that project's tasks. Click again to deselect.</p>
+      <ul>
+        <li><strong>Business Priority pips</strong> — 5 colored dots. More filled dots = higher business priority. Red = 5 (critical), amber = 4, blue = 3, green = 2, gray = 1.</li>
+        <li><strong>Deadline color</strong> — red if due within 7 days, amber if within 14 days.</li>
+        <li><strong>Stakeholders</strong> — when a project is selected, the project team members appear below the cards.</li>
+        <li><strong>Latest Meeting Minutes</strong> — if a project is selected and has meeting minutes linked to it, the most recent one appears as a preview.</li>
+      </ul>
+      <h4>Adding / Editing / Deleting a Project</h4>
+      <p>Click <strong>+ Add Project</strong> to create a new one. Click <strong>Edit</strong> on any project card to update it. Click <strong>Delete</strong> to remove it (you will be asked to confirm).</p>
+      <h4>Task Table</h4>
+      <p>The table lists tasks with columns for priority, project, business priority, regulatory risk, due date, hours, risk level, and assignee. Columns with ↕ can be clicked to sort.</p>
+      <h4>Filters</h4>
+      <p>Use the dropdowns above the table to filter by team member, priority, and risk level. Sorting options: Due Date, Priority, Risk, Business Priority.</p>
+      <h4>Conflict Detection</h4>
+      <p>If a person has two or more high-priority tasks due on the same day, a yellow warning banner appears and those tasks are flagged with a "⚑ Conflict" label.</p>
+      <h4>Adding / Editing a Task</h4>
+      <p>Click <strong>+ Add Task</strong> to create a new task. Fill in the title, project, assignee, priority, due date, hours, risk level, and regulatory risk. Click <strong>Edit</strong> on any task row to update or delete it.</p>
+    `
+  },
+  {
+    id: 'risks',
+    title: 'Risk Tracker',
+    icon: '⚠️',
+    content: `
+      <p>The <strong>Risk Tracker</strong> helps you log, monitor, and act on risks before they become problems.</p>
+      <h4>Risk Summary Cards (top row)</h4>
+      <ul>
+        <li><strong>Open Risks</strong> — risks that are still active and unresolved.</li>
+        <li><strong>High Severity</strong> — risks flagged as high severity (red border on card).</li>
+        <li><strong>Overdue</strong> — open risks whose due date has passed.</li>
+        <li><strong>Monitoring</strong> — risks being watched but not yet fully resolved.</li>
+      </ul>
+      <h4>Risk Cards</h4>
+      <p>Each risk shows its title, severity badge, status badge, linked project, owner, how many days ago it was identified, and its due date or overdue warning. Below that is the mitigation plan and any notes.</p>
+      <ul>
+        <li><strong>Left border color</strong> — red = high severity, amber = medium, green = low.</li>
+        <li><strong>Overdue pulse</strong> — the "OVERDUE" badge pulses red to grab attention.</li>
+      </ul>
+      <h4>Filtering</h4>
+      <p>Use the "All Severities" dropdown to show only High, Medium, or Low risks. Risks are always sorted by severity first, then by due date.</p>
+      <h4>Adding a Risk</h4>
+      <p>Click <strong>+ Add Risk</strong> in the top-right. Fill in the title, severity, status, project, owner, due date, mitigation plan, and any notes.</p>
+      <h4>Editing or Closing a Risk</h4>
+      <p>Click any risk card to open the edit form. Change the status to <strong>Closed</strong> when the risk is resolved — it will no longer count toward open risk totals.</p>
+    `
+  },
+  {
+    id: 'oto',
+    title: '1:1 Support',
+    icon: '💬',
+    content: `
+      <p>The <strong>1:1 Support</strong> view is your per-person coaching workspace. Select a team member using the pill buttons at the top, then use the panels below to manage their development.</p>
+      <h4>Leader Notes</h4>
+      <p>Type a note in the text box and click <strong>Log Note</strong> to save it with a timestamp. Notes are searchable — use the search box to find past entries. Each entry can be edited or deleted using the buttons on the right.</p>
+      <h4>Development Goals</h4>
+      <p>Click <strong>+ Goal</strong> to add a goal for the person. Click <strong>Edit</strong> to update it, or the ✕ button to delete it after confirming.</p>
+      <h4>Strengths & Growth Areas</h4>
+      <p>Click <strong>+ Add</strong> under Strengths or Growth Areas to add a tag. Click an existing tag to edit its text. Hover over a tag to reveal the ✕ delete button.</p>
+      <h4>Coaching Log</h4>
+      <p>Click <strong>+ Entry</strong> to add a dated coaching note. Great for recording what was discussed in a 1:1 meeting. Entries can be edited or deleted.</p>
+      <h4>Decision Log</h4>
+      <p>Click <strong>+ Decision</strong> to record a significant decision made about this person (e.g. promotion, role change, task assignment). Include a rationale so you have a record of why the decision was made. Entries can be edited or deleted.</p>
+    `
+  },
+  {
+    id: 'teamnotes',
+    title: 'Team Notes',
+    icon: '📝',
+    content: `
+      <p><strong>Team Notes</strong> is a shared leadership log for capturing meeting discussions, observations, and follow-ups about the team as a whole.</p>
+      <h4>Adding a Note</h4>
+      <ol>
+        <li>Enter a meeting title (e.g. "Weekly Sync", "Sprint Review").</li>
+        <li>Type your notes in the text area.</li>
+        <li>Use <strong>@</strong> anywhere in the text to mention a team member — a dropdown will appear with matching names. Select one to insert their name as a highlight.</li>
+        <li>Click the avatar bubbles under "Present" to mark who attended.</li>
+        <li>Click <strong>Log Note</strong> to save.</li>
+      </ol>
+      <h4>Searching Notes</h4>
+      <p>Use the search box below the note list to filter by title or content. Results update instantly as you type.</p>
+      <h4>Editing or Deleting a Note</h4>
+      <p>Each saved note has an <strong>Edit</strong> button (to update it) and an ✕ button (to delete it). You will be asked to confirm before deleting.</p>
+      <h4>Attendee Links</h4>
+      <p>If attendees were marked on a note, their names appear at the bottom of the card as clickable buttons. Click one to jump straight to their 1:1 profile.</p>
+    `
+  },
+  {
+    id: 'minutes',
+    title: 'Meeting Minutes',
+    icon: '🗓️',
+    content: `
+      <p><strong>Meeting Minutes</strong> is for logging formal meeting records with structured fields — useful for audit trails, stakeholder reviews, and project retrospectives.</p>
+      <h4>Creating Meeting Minutes</h4>
+      <ol>
+        <li><strong>Title</strong> (required) — e.g. "Q2 Planning Session".</li>
+        <li><strong>Category</strong> — choose from General, Project, Problem/Incident, Stakeholder, Executive, or Ad-hoc.</li>
+        <li><strong>Related Project</strong> (optional) — linking to a project makes these minutes visible in the Projects view when that project is selected.</li>
+        <li><strong>Discussion / Notes</strong> (required) — the main content of the meeting.</li>
+        <li><strong>Action Items</strong> (optional) — follow-up tasks, owners, deadlines.</li>
+        <li><strong>Team Present</strong> — click avatar bubbles to mark internal attendees.</li>
+        <li><strong>External</strong> — free-text field for external guests (e.g. vendors, clients).</li>
+        <li>Click <strong>Save Minutes</strong>.</li>
+      </ol>
+      <h4>Searching Minutes</h4>
+      <p>Use the search box to filter by title, category, notes, or action items.</p>
+      <h4>Editing or Deleting Minutes</h4>
+      <p>Each saved record has an Edit button and a delete ✕ button. Confirm before deleting.</p>
+      <h4>Project Link</h4>
+      <p>If minutes are linked to a project, a "Latest Meeting Minutes" preview card appears at the top of the task table when that project is selected in the Projects view.</p>
+    `
+  },
+  {
+    id: 'data',
+    title: 'Saving & Exporting Data',
+    icon: '💾',
+    content: `
+      <p>All your data is stored in your browser's local storage. Use the <strong>Data</strong> button in the top-right corner to manage it.</p>
+      <h4>Save to Browser</h4>
+      <p>Click <strong>Data → Save to browser</strong>. Your data will be restored automatically the next time you open the app and log in.</p>
+      <h4>Download as JSON</h4>
+      <p>Downloads a complete backup of all your data as a <code>.json</code> file. Keep this safe — it contains everything: projects, tasks, risks, team members, notes, and more.</p>
+      <h4>Copy to Clipboard</h4>
+      <p>Copies the JSON data to your clipboard so you can paste it somewhere (e.g. a document or email).</p>
+      <h4>Load from JSON File</h4>
+      <p>Click this and select a previously downloaded JSON backup file. This will replace all current data with the contents of that file.</p>
+      <h4>Paste JSON</h4>
+      <p>If you have JSON data in your clipboard, use this option to paste and import it directly.</p>
+      <h4>Clear Saved Data</h4>
+      <p>Removes all saved data from the browser. Use this if you want a fresh start. This cannot be undone — export a backup first.</p>
+    `
+  },
+  {
+    id: 'theme',
+    title: 'Light & Dark Mode',
+    icon: '🌙',
+    content: `
+      <p>LeadOS supports both a dark theme (default) and a light theme.</p>
+      <p>Click the <strong>moon / sun icon</strong> in the top-right corner to toggle between them. Your preference is saved automatically and will be remembered next time you open the app.</p>
+    `
+  },
+];
+
+views.guide = function() {
+  return `<div class="view">
+    <div style="max-width:760px;margin:0 auto">
+      <div style="margin-bottom:22px">
+        <input type="text" class="search-input" id="guide-search"
+          placeholder="Search the guide…"
+          oninput="filterGuide(this.value)"
+          style="width:100%;font-size:14px;padding:10px 16px">
+      </div>
+      <div id="guide-sections">
+        ${renderGuideSections('')}
+      </div>
+    </div>
+  </div>`;
+};
+
+function renderGuideSections(q) {
+  const query = (q || '').toLowerCase().trim();
+  const matched = GUIDE_SECTIONS.filter(s =>
+    !query ||
+    s.title.toLowerCase().includes(query) ||
+    s.content.toLowerCase().includes(query)
+  );
+  if (!matched.length) return `<div class="empty-state">No results for "${q}".</div>`;
+  return matched.map(s => `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:22px 26px;margin-bottom:14px;transition:border-color var(--tr)"
+      onmouseenter="this.style.borderColor='var(--border-md)'" onmouseleave="this.style.borderColor='var(--border)'">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <span style="font-size:20px">${s.icon}</span>
+        <div style="font-family:var(--font-d);font-size:19px;font-weight:600;color:var(--t0)">${s.title}</div>
+      </div>
+      <div class="guide-body">${s.content}</div>
+    </div>
+  `).join('');
+}
+
+function filterGuide(q) {
+  document.getElementById('guide-sections').innerHTML = renderGuideSections(q);
+}
 
 // ─── FILTER ───────────────────────────────────────────────────────────────────
 function setFilter(key, val) {
