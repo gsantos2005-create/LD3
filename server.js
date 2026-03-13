@@ -1,25 +1,22 @@
-const http = require('http');
-const fs = require('fs');
+const express = require('express');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 
-const PORT = process.env.PORT || 3002;
-const MIME = {
-  '.html': 'text/html',
-  '.css':  'text/css',
-  '.js':   'text/javascript',
-  '.json': 'application/json',
-  '.png':  'image/png',
-  '.ico':  'image/x-icon',
-};
+const authRoutes = require('./routes/auth');
+const apiRoutes  = require('./routes/api');
 
-http.createServer((req, res) => {
-  const filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
-  const ext = path.extname(filePath);
-  fs.readFile(filePath, (err, data) => {
-    if (err) { res.writeHead(404); res.end('Not found'); return; }
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'text/plain' });
-    res.end(data);
-  });
-}).listen(PORT, () => {
-  console.log(`LeadOS running at http://localhost:${PORT}`);
+const app = express();
+const PORT = process.env.PORT || 3002;
+
+app.use(express.json());
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname)));
+
+app.use('/api/auth', authRoutes);
+app.use('/api', apiRoutes);
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+app.listen(PORT, () => console.log(`LeadOS running at http://localhost:${PORT}`));
