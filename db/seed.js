@@ -16,14 +16,14 @@ if (!existingTeam) {
 
 // ─── USERS ────────────────────────────────────────────────────────────────────
 const usersToSeed = [
-  { username: 'biohed',    password: 'Leader1!', role: 'leader', team_id: 1,    member_id: null },
-  { username: 'boss',      password: 'Guest1!',  role: 'leader', team_id: null, member_id: null },
-  { username: 'sarah.chen',password: 'Sarah1!',  role: 'ic',     team_id: 1,    member_id: 'M1' },
-  { username: 'marcus.w',  password: 'Marcus1!', role: 'ic',     team_id: 1,    member_id: 'M2' },
-  { username: 'elena.r',   password: 'Elena1!',  role: 'ic',     team_id: 1,    member_id: 'M3' },
-  { username: 'james.p',   password: 'James1!',  role: 'ic',     team_id: 1,    member_id: 'M4' },
-  { username: 'priya.s',   password: 'Priya1!',  role: 'ic',     team_id: 1,    member_id: 'M5' },
-  { username: 'tom.b',     password: 'Tom1!',    role: 'ic',     team_id: 1,    member_id: 'M6' },
+  { username: 'biohed',    password: '1234', role: 'leader', team_id: 1,    member_id: null },
+  { username: 'boss',      password: '1234', role: 'leader', team_id: null, member_id: null },
+  { username: 'sarah.chen',password: '1234', role: 'ic',     team_id: 1,    member_id: 'M1' },
+  { username: 'marcus.w',  password: '1234', role: 'ic',     team_id: 1,    member_id: 'M2' },
+  { username: 'elena.r',   password: '1234', role: 'ic',     team_id: 1,    member_id: 'M3' },
+  { username: 'james.p',   password: '1234', role: 'ic',     team_id: 1,    member_id: 'M4' },
+  { username: 'priya.s',   password: '1234', role: 'ic',     team_id: 1,    member_id: 'M5' },
+  { username: 'tom.b',     password: '1234', role: 'ic',     team_id: 1,    member_id: 'M6' },
 ];
 
 const insertUser = db.prepare(`
@@ -352,11 +352,7 @@ if (existingDecisions.cnt === 0) {
 
 console.log('\nSeed complete!');
 console.log('\nTest accounts:');
-console.log('  Leader:       biohed / Leader1!');
-console.log('  Guest Leader: boss   / Guest1!');
-console.log('  IC (Sarah):   sarah.chen / Sarah1!');
-console.log('  IC (Marcus):  marcus.w   / Marcus1!');
-console.log('  IC (Elena):   elena.r    / Elena1!');
-console.log('  IC (James):   james.p    / James1!');
-console.log('  IC (Priya):   priya.s    / Priya1!');
-console.log('  IC (Tom):     tom.b      / Tom1!');
+console.log('  All accounts use password: 1234');
+console.log('  Leader:       biohed');
+console.log('  Guest Leader: boss');
+console.log('  IC accounts:  sarah.chen, marcus.w, elena.r, james.p, priya.s, tom.b');
