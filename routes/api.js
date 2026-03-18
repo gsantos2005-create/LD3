@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const db = require('../db/database');
 const { requireAuth } = require('../middleware/auth');
 
@@ -486,6 +487,20 @@ router.post('/members', (req, res) => {
   const body = req.body;
   const id = body.id || ('M' + Date.now());
 
+  // Generate username: first initial + last name, lowercased (e.g. "Sarah Chen" → "s.chen")
+  const nameParts = body.name.trim().split(/\s+/);
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join('') || nameParts[0];
+  const baseUsername = (firstName[0] + '.' + lastName).toLowerCase().replace(/[^a-z0-9.]/g, '');
+  // Ensure uniqueness by appending a number if needed
+  let username = baseUsername;
+  let suffix = 2;
+  while (db.prepare('SELECT id FROM users WHERE username = ?').get(username)) {
+    username = baseUsername + suffix++;
+  }
+  const defaultPassword = '1234';
+  const passwordHash = bcrypt.hashSync(defaultPassword, 10);
+
   try {
     db.prepare(`
       INSERT INTO members (id, team_id, name, initials, role_title, color, weekly_capacity)
@@ -497,8 +512,12 @@ router.post('/members', (req, res) => {
       body.color || '#4f8ef7',
       body.weeklyCapacity || 40
     );
+    db.prepare(`
+      INSERT INTO users (username, password_hash, role, team_id, member_id)
+      VALUES (?, ?, 'ic', ?, ?)
+    `).run(username, passwordHash, user.teamId, id);
     logAudit(user.teamId, user.id, user.username, 'added', 'member', id, body.name);
-    res.json({ id });
+    res.json({ id, username, password: defaultPassword });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -546,6 +565,7 @@ router.delete('/members/:id', (req, res) => {
   if (!member) return res.status(404).json({ error: 'Member not found' });
 
   db.prepare('DELETE FROM members WHERE id = ?').run(mid);
+  db.prepare('DELETE FROM users WHERE member_id = ?').run(mid);
   logAudit(user.teamId, user.id, user.username, 'deleted', 'member', mid, member.name);
   res.json({ ok: true });
 });

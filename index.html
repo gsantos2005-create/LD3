@@ -819,7 +819,7 @@ td:first-child{color:var(--t0);font-weight:500}
     <div class="sidebar-logo">
       <div class="logo-mark">L</div>
       <div>
-        <div class="logo-text">LeadOS<span class="logo-version">v0.19</span></div>
+        <div class="logo-text">LeadOS<span class="logo-version">v0.20</span></div>
         <div class="logo-sub">Command Center</div>
       </div>
     </div>
@@ -1107,6 +1107,7 @@ function navigate(view) {
   });
 }
 function topbarActions(view) {
+  if(isIC()) return '';
   if(view==='risks') return `<button class="btn btn-primary btn-sm" onclick="openAddRisk()">+ Add Risk</button>`;
   if(view==='projects') return `<button class="btn btn-ghost btn-sm" onclick="openAddProject()">+ Add Project</button><button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Add Task</button>`;
   if(view==='team') return `<button class="btn btn-ghost btn-sm" onclick="openAddTask()">+ Add Task</button><button class="btn btn-primary btn-sm" onclick="openAddMember()">+ Add Member</button>`;
@@ -1116,6 +1117,122 @@ function topbarActions(view) {
 // ─── VIEW: OVERVIEW ───────────────────────────────────────────────────────────
 const views = {};
 views.overview = function() {
+  if (isIC()) {
+    const me = state.team.find(m => m.id === currentUser.memberId) || {};
+    const myTasks = state.tasks.filter(t => t.mid === currentUser.memberId);
+    const myRisks = state.risks.filter(r => r.owner === currentUser.memberId);
+    const myProjects = state.projects;
+    const {hours, pct, cap} = getCapacity(currentUser.memberId);
+    const cc = capColor(pct);
+    const overdue = myTasks.filter(t => isOverdue(t.due) && t.status !== 'Done');
+    const highPri = myTasks.filter(t => t.priority === 'High' && t.status !== 'Done');
+    const upcoming = myTasks.filter(t => { const d = daysUntil(t.due); return d >= 0 && d <= 7 && t.status !== 'Done'; })
+      .sort((a,b) => new Date(a.due) - new Date(b.due));
+    return `<div class="view">
+      ${overdue.length ? `<div class="overview-alert" style="margin-bottom:20px">
+        <span class="alert-icon">⚠</span>
+        <div><strong>${overdue.length} overdue task${overdue.length>1?'s':''}</strong> — ${overdue.map(t=>t.title).join(', ')}</div>
+      </div>` : ''}
+
+      <div class="grid-4 mb-16">
+        <div class="kpi-card gold">
+          <div class="kpi-label">My Tasks</div>
+          <div class="kpi-value">${myTasks.filter(t=>t.status!=='Done').length}</div>
+          <div class="kpi-sub">${myTasks.filter(t=>t.status==='Done').length} completed</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">High Priority</div>
+          <div class="kpi-value ${highPri.length>0?'red':''}">${highPri.length}</div>
+          <div class="kpi-sub">Needs attention</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-label">Due This Week</div>
+          <div class="kpi-value ${upcoming.length>0?'amber':''}">${upcoming.length}</div>
+          <div class="kpi-sub">Within 7 days</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">My Projects</div>
+          <div class="kpi-value">${myProjects.length}</div>
+          <div class="kpi-sub">Active</div>
+        </div>
+      </div>
+
+      <div class="grid-2 mb-16">
+        <div class="card">
+          <div class="section-header">
+            <div><div class="section-title" style="font-size:16px">My Capacity</div><div class="section-sub">Current weekly allocation</div></div>
+          </div>
+          <div class="cap-summary-item" style="padding:8px 0">
+            ${avatar(me, 38)}
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:600;color:var(--t0);margin-bottom:6px">${hours}h of ${cap}h allocated</div>
+              <div class="cap-bar-wrap" style="height:10px">
+                <div class="cap-bar ${capBarClass(pct)}" style="width:${Math.min(pct,100)}%"></div>
+              </div>
+              ${pct>=100?`<div style="font-size:11px;color:var(--red);margin-top:4px">⚠ Over capacity</div>`:
+                pct>=80?`<div style="font-size:11px;color:var(--amber);margin-top:4px">Near limit</div>`:
+                `<div style="font-size:11px;color:var(--t2);margin-top:4px">${cap-hours}h available</div>`}
+            </div>
+            <div class="cap-pct-label text-${cc}" style="font-size:22px;font-family:var(--font-m)">${pct}%</div>
+          </div>
+          ${myRisks.filter(r=>r.status==='Open').length ? `
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+              <div style="font-size:12px;font-weight:600;color:var(--t1);margin-bottom:8px">My Open Risks</div>
+              ${myRisks.filter(r=>r.status==='Open').map(r=>`
+                <div class="overview-alert" style="margin-bottom:6px">
+                  <span class="alert-icon">▲</span>
+                  <div><div style="font-size:13px;font-weight:600;color:var(--t0)">${r.title}</div>
+                  <div style="font-size:11px;color:var(--red);margin-top:2px">${r.severity} severity${isOverdue(r.due)?' · OVERDUE':''}</div></div>
+                </div>`).join('')}
+            </div>` : ''}
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div><div class="section-title" style="font-size:16px">Upcoming Deadlines</div><div class="section-sub">Your tasks due within 7 days</div></div>
+          </div>
+          ${upcoming.length ? upcoming.map(t => {
+            const proj = getProject(t.pid);
+            const d = daysUntil(t.due);
+            return `<div class="overview-deadline">
+              <div class="deadline-dot" style="background:${d<=2?'var(--red)':d<=5?'var(--amber)':'var(--green)'}"></div>
+              <div class="deadline-info">
+                <div class="deadline-title">${t.title}</div>
+                <div class="deadline-meta">${proj.name} · ${priorityBadge(t.priority)}</div>
+              </div>
+              <div class="deadline-date">${d===0?'Today':d===1?'Tomorrow':d+'d'}</div>
+            </div>`;
+          }).join('') : '<div class="empty-state" style="padding:20px">No deadlines this week ✓</div>'}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-header">
+          <div><div class="section-title" style="font-size:16px">My Tasks</div><div class="section-sub">All active tasks</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="navigate('tasks')">View All</button>
+        </div>
+        ${myTasks.filter(t=>t.status!=='Done').length ? `
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Task</th><th>Priority</th><th>Project</th><th>Due</th><th>Status</th></tr></thead>
+            <tbody>
+              ${myTasks.filter(t=>t.status!=='Done').sort((a,b)=>new Date(a.due)-new Date(b.due)).map(t=>{
+                const proj=getProject(t.pid); const d=daysUntil(t.due);
+                return `<tr>
+                  <td>${t.title}${isOverdue(t.due)?'<span style="font-size:9px;margin-left:6px;color:var(--red);font-weight:700">OVERDUE</span>':''}</td>
+                  <td>${priorityBadge(t.priority)}</td>
+                  <td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${proj.color};display:inline-block"></span><span style="font-size:12px">${proj.name}</span></span></td>
+                  <td style="font-family:var(--font-m);font-size:12px;${d<=3&&d>=0?'color:var(--red)':d<=7&&d>=0?'color:var(--amber)':isOverdue(t.due)?'color:var(--red)':''}">${fmtDate(t.due)}</td>
+                  <td><span class="badge ${t.status==='Done'?'badge-green':t.status==='In Progress'?'badge-amber':'badge-gray'}">${t.status}</span></td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>` : '<div class="empty-state" style="padding:20px">No active tasks 🎉</div>'}
+      </div>
+    </div>`;
+  }
+
   const openRisks = state.risks.filter(r=>r.status!=='Closed');
   const highRisks = openRisks.filter(r=>r.severity==='High');
   const overloaded = state.team.filter(m=>getCapacity(m.id).pct>=100);
@@ -1231,6 +1348,24 @@ views.overview = function() {
 
 // ─── VIEW: TEAM ───────────────────────────────────────────────────────────────
 views.team = function() {
+  if (isIC()) {
+    return `<div class="view">
+      <p style="font-size:13px;color:var(--t2);margin-bottom:16px">Your team members</p>
+      <div class="grid-3">
+        ${state.team.map(m=>`
+          <div class="person-card" style="cursor:default">
+            <div class="person-header">
+              ${avatar(m)}
+              <div style="flex:1;min-width:0">
+                <div class="person-name">${m.name}</div>
+                <div class="person-role">${m.role}</div>
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
   return `<div class="view">
     <div class="grid-3">
       ${state.team.map(m=>{
@@ -1281,16 +1416,21 @@ views.team = function() {
 
 // ─── VIEW: CAPACITY ───────────────────────────────────────────────────────────
 views.capacity = function() {
+  const memberList = isIC()
+    ? state.team.filter(m => m.id === currentUser.memberId)
+    : state.team;
   return `<div class="view">
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px">
-      <span style="font-size:12px;color:var(--t2)">💡 <strong style="color:var(--t1)">Drag tasks</strong> between team members to reassign. Changes update capacity immediately.</span>
+      ${isIC()
+        ? `<span style="font-size:12px;color:var(--t2)">Your current weekly workload and task allocation.</span>`
+        : `<span style="font-size:12px;color:var(--t2)">💡 <strong style="color:var(--t1)">Drag tasks</strong> between team members to reassign. Changes update capacity immediately.</span>`}
       <div style="flex:1"></div>
       <span class="badge badge-green">● Green ≤80%</span>
       <span class="badge badge-amber">● Amber 80–99%</span>
       <span class="badge badge-red">● Red 100%+</span>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px">
-      ${state.team.map(m=>{
+      ${memberList.map(m=>{
         const {hours,pct}=getCapacity(m.id);
         const cc=capColor(pct);
         const mTasks=state.tasks.filter(t=>t.mid===m.id);
@@ -1408,7 +1548,7 @@ views.projects = function() {
               ${p.deadline?fmtDate(p.deadline):'No deadline'}
             </span>
           </div>
-          <div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid ${sel?p.color+'33':'var(--border)'}">
+          ${!isIC() ? `<div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid ${sel?p.color+'33':'var(--border)'}">
             <button onclick="event.stopPropagation();openEditProject('${p.id}')" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               Edit
@@ -1417,7 +1557,7 @@ views.projects = function() {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
               Delete
             </button>
-          </div>
+          </div>` : ''}
         </div>`;
       }).join('')}
     </div>
@@ -1428,10 +1568,10 @@ views.projects = function() {
         — ${tasks.length} task${tasks.length!==1?'s':''}
       </span>
       <div style="flex:1"></div>
-      <select class="filter-select" onchange="setFilter('person',this.value)">
+      ${!isIC() ? `<select class="filter-select" onchange="setFilter('person',this.value)">
         <option value="all">All Members</option>
         ${state.team.map(m=>`<option value="${m.id}" ${state.taskFilter.person===m.id?'selected':''}>${m.name}</option>`).join('')}
-      </select>
+      </select>` : ''}
       <select class="filter-select" onchange="setFilter('priority',this.value)">
         <option value="all">All Priorities</option>
         <option value="High">High Priority</option>
@@ -1526,7 +1666,7 @@ views.projects = function() {
               <td style="font-family:var(--font-m)">${t.hours}h</td>
               <td>${riskBadge(t.risk)}</td>
               <td><span style="display:inline-flex;align-items:center;gap:5px">${avatar(mem,22)}<span style="font-size:12px">${mem.name.split(' ')[0]}</span></span></td>
-              <td><button class="btn btn-ghost btn-sm" onclick="openEditTask('${t.id}')">Edit</button></td>
+              <td>${!isIC() ? `<button class="btn btn-ghost btn-sm" onclick="openEditTask('${t.id}')">Edit</button>` : ''}</td>
             </tr>`;
           }).join('')}
         </tbody>
@@ -1574,7 +1714,7 @@ views.risks = function() {
         const proj=getProject(r.pid); const owner=getMember(r.owner);
         const aged=daysAgo(r.identified);
         const od=isOverdue(r.due);
-        return `<div class="risk-card risk-${r.severity.toLowerCase()} ${od&&r.status==='Open'?'overdue':''}" onclick="openEditRisk('${r.id}')">
+        return `<div class="risk-card risk-${r.severity.toLowerCase()} ${od&&r.status==='Open'?'overdue':''}" ${!isIC()?`onclick="openEditRisk('${r.id}')"`:'style="cursor:default"'}>
           <div class="risk-header">
             <div class="risk-title">${r.title}</div>
             ${severityBadge(r.severity)}
@@ -2768,7 +2908,7 @@ function openAddMember() {
   document.getElementById('em-initials').addEventListener('input', updateAvatarPreview);
 }
 
-function saveNewMember() {
+async function saveNewMember() {
   const name = document.getElementById('em-name').value.trim();
   if (!name) { showToast('Please enter a name'); return; }
   const newMember = {
@@ -2786,10 +2926,22 @@ function saveNewMember() {
     decisionLog: [],
   };
   state.team.push(newMember);
-  api('POST', '/api/members', newMember);
-  closeModal();
-  showToast(`${newMember.name} added to team`, 'success');
+  const result = await api('POST', '/api/members', newMember);
   navigate('team');
+  if (result && result.username) {
+    openModal(
+      `<h2 style="margin:0">Account Created</h2>`,
+      `<p style="margin:0 0 16px">${newMember.name} has been added to your team with the following login credentials:</p>
+       <div style="background:#1e1e2e;color:#e0e0e0;border-radius:8px;padding:16px;font-family:monospace;font-size:15px;line-height:2">
+         <div><strong style="color:#fff">Username:</strong> ${result.username}</div>
+         <div><strong style="color:#fff">Password:</strong> ${result.password}</div>
+       </div>
+       <p style="margin:12px 0 0;font-size:13px;color:var(--text-muted,#888)">Share these credentials with ${newMember.name.split(' ')[0]}. They can log in and update their password.</p>`,
+      `<button class="btn btn-primary" onclick="closeModal()">Done</button>`
+    );
+  } else {
+    showToast(`${newMember.name} added to team`, 'success');
+  }
 }
 
 function openEditMember(mid) {
@@ -2825,36 +2977,131 @@ function saveEditMember(mid) {
 
 function confirmDeleteMember(mid) {
   const m = getMember(mid);
-  const taskCount = state.tasks.filter(t=>t.mid===mid).length;
+  const openTasks = state.tasks.filter(t => t.mid === mid && t.status !== 'Done');
+  const ownedProjects = state.projects.filter(p => p.owner === mid);
+  const others = state.team.filter(x => x.id !== mid);
+
+  if (openTasks.length === 0 && ownedProjects.length === 0) {
+    openModal(
+      `<div style="display:flex;align-items:center;gap:12px">${avatar(m,38)}<div><h2>Remove ${m.name}?</h2><p>No open tasks or projects to resolve</p></div></div>`,
+      `<div style="background:var(--red-dim);border:1px solid rgba(226,91,91,0.22);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--red)">
+         ⚠ This will permanently remove ${m.name} from the team and delete their login account. This cannot be undone.
+       </div>`,
+      `<button class="btn btn-ghost" onclick="openEditMember('${mid}')">← Back</button>
+       <div style="flex:1"></div>
+       <button class="btn btn-danger" onclick="deleteMember('${mid}')">Remove Member</button>`
+    );
+    return;
+  }
+
+  const memberOptions = others.map(o => `<option value="${o.id}">${o.name.split(' ')[0]} ${o.name.split(' ')[1]?o.name.split(' ')[1][0]+'.':''}</option>`).join('');
+
+  const taskRows = openTasks.map(t => `
+    <div id="task-resolve-${t.id}" style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;color:var(--t0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</div>
+        <div style="font-size:11px;color:var(--t2);margin-top:2px">${priorityBadge(t.priority)}</div>
+      </div>
+      <select class="filter-select" style="width:130px;flex-shrink:0" onchange="resolveTask('${t.id}',this.value,'${mid}')">
+        <option value="">Reassign to...</option>
+        ${memberOptions}
+      </select>
+      <button class="btn btn-ghost btn-sm" style="flex-shrink:0" onclick="resolveTaskDone('${t.id}','${mid}')">Mark Done</button>
+    </div>`).join('');
+
+  const projectRows = ownedProjects.map(p => `
+    <div id="proj-resolve-${p.id}" style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;min-width:0;font-size:13px;color:var(--t0)">${p.name}</div>
+      <select class="filter-select" style="width:130px;flex-shrink:0" onchange="resolveProject('${p.id}',this.value,'${mid}')">
+        <option value="">Transfer to...</option>
+        ${memberOptions}
+      </select>
+    </div>`).join('');
+
+  const taskSummary = openTasks.length > 0 ? `<strong style="color:var(--t0)">${openTasks.length} open task${openTasks.length>1?'s':''}</strong>` : '';
+  const projSummary = ownedProjects.length > 0 ? `<strong style="color:var(--t0)">${ownedProjects.length} owned project${ownedProjects.length>1?'s':''}</strong>` : '';
+  const summary = [taskSummary, projSummary].filter(Boolean).join(' and ');
+
   openModal(
-    `<h2>Remove ${m.name}?</h2>`,
-    `<div style="background:var(--red-dim);border:1px solid rgba(226,91,91,0.22);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--red);margin-bottom:12px">
-       ⚠ This cannot be undone.
-     </div>
-     <div style="font-size:13px;color:var(--t1)">
-       ${taskCount>0
-         ? `<strong style="color:var(--t0)">${taskCount} task${taskCount>1?'s':''}</strong> are currently assigned to ${m.name}.
-            <br><br><label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-              <input type="checkbox" id="delete-tasks-check" style="accent-color:var(--red)"/>
-              <span>Also delete these tasks</span>
-            </label>`
-         : `${m.name} has no assigned tasks.`}
-     </div>`,
+    `<div style="display:flex;align-items:center;gap:12px">${avatar(m,38)}<div><h2>Remove ${m.name}</h2><p>Resolve all items first</p></div></div>`,
+    `<p style="font-size:13px;color:var(--t2);margin:0 0 16px">${m.name.split(' ')[0]} has ${summary} that must be reassigned or resolved before removal.</p>
+     ${openTasks.length > 0 ? `
+       <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--t2);font-weight:600;margin-bottom:4px">Open Tasks</div>
+       ${taskRows}` : ''}
+     ${ownedProjects.length > 0 ? `
+       <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--t2);font-weight:600;margin:${openTasks.length>0?'20px':0} 0 4px">Project Ownership</div>
+       ${projectRows}` : ''}`,
     `<button class="btn btn-ghost" onclick="openEditMember('${mid}')">← Back</button>
      <div style="flex:1"></div>
-     <button class="btn btn-danger" onclick="deleteMember('${mid}')">Remove Member</button>`
+     <button class="btn btn-danger" id="confirm-remove-btn" onclick="deleteMember('${mid}')" disabled style="opacity:0.4;cursor:not-allowed">Remove Member</button>`
   );
+
+  window._removeState = {
+    tasks: new Set(openTasks.map(t => t.id)),
+    projects: new Set(ownedProjects.map(p => p.id)),
+  };
+}
+
+function checkRemoveReady() {
+  const s = window._removeState;
+  if (!s) return;
+  const ready = s.tasks.size === 0 && s.projects.size === 0;
+  const btn = document.getElementById('confirm-remove-btn');
+  if (!btn) return;
+  btn.disabled = !ready;
+  btn.style.opacity = ready ? '1' : '0.4';
+  btn.style.cursor = ready ? 'pointer' : 'not-allowed';
+}
+
+function resolveTask(tid, newMid, removingMid) {
+  if (!newMid) return;
+  const t = state.tasks.find(x => x.id === tid);
+  if (!t) return;
+  t.mid = newMid;
+  api('PUT', '/api/tasks/' + tid, { mid: newMid });
+  const mem = getMember(newMid);
+  const row = document.getElementById('task-resolve-' + tid);
+  if (row) row.innerHTML = `
+    <div style="flex:1;font-size:13px;color:var(--t2);text-decoration:line-through">${t.title}</div>
+    <span class="badge badge-green">→ ${mem.name.split(' ')[0]}</span>`;
+  window._removeState.tasks.delete(tid);
+  checkRemoveReady();
+}
+
+function resolveTaskDone(tid, removingMid) {
+  const t = state.tasks.find(x => x.id === tid);
+  if (!t) return;
+  t.status = 'Done';
+  api('PUT', '/api/tasks/' + tid, { status: 'Done' });
+  const row = document.getElementById('task-resolve-' + tid);
+  if (row) row.innerHTML = `
+    <div style="flex:1;font-size:13px;color:var(--t2);text-decoration:line-through">${t.title}</div>
+    <span class="badge badge-green">Marked Done</span>`;
+  window._removeState.tasks.delete(tid);
+  checkRemoveReady();
+}
+
+function resolveProject(pid, newOwnerId, removingMid) {
+  if (!newOwnerId) return;
+  const p = state.projects.find(x => x.id === pid);
+  if (!p) return;
+  p.owner = newOwnerId;
+  api('PUT', '/api/projects/' + pid, { owner: newOwnerId });
+  const mem = getMember(newOwnerId);
+  const row = document.getElementById('proj-resolve-' + pid);
+  if (row) row.innerHTML = `
+    <div style="flex:1;font-size:13px;color:var(--t2);text-decoration:line-through">${p.name}</div>
+    <span class="badge badge-green">→ ${mem.name.split(' ')[0]}</span>`;
+  window._removeState.projects.delete(pid);
+  checkRemoveReady();
 }
 
 function deleteMember(mid) {
   const m = getMember(mid);
-  const deleteTasks = document.getElementById('delete-tasks-check')?.checked;
-  if (deleteTasks) {
-    state.tasks = state.tasks.filter(t=>t.mid!==mid);
-  }
-  state.team = state.team.filter(x=>x.id!==mid);
-  api('DELETE', '/api/members/'+mid);
-  if (state.selectedPerson===mid) state.selectedPerson = state.team[0]?.id || '';
+  state.team = state.team.filter(x => x.id !== mid);
+  api('DELETE', '/api/members/' + mid);
+  if (state.selectedPerson === mid) state.selectedPerson = state.team[0]?.id || '';
+  window._removeState = null;
   closeModal();
   showToast(`${m.name} removed from team`);
   navigate('team');
@@ -3917,13 +4164,13 @@ async function loadAppData() {
 
 function applyRoleUI() {
   // Hide nav items not relevant to role
-  if (isIC() || isGuest()) {
+  if (isGuest()) {
     document.querySelectorAll('[data-view="team"],[data-view="teamnotes"],[data-view="minutes"]').forEach(el => {
       el.style.display = 'none';
     });
   }
   if (isIC()) {
-    document.querySelectorAll('[data-view="oto"]').forEach(el => {
+    document.querySelectorAll('[data-view="oto"],[data-view="teamnotes"],[data-view="minutes"]').forEach(el => {
       el.style.display = 'none';
     });
   }
