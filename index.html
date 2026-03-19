@@ -819,7 +819,7 @@ td:first-child{color:var(--t0);font-weight:500}
     <div class="sidebar-logo">
       <div class="logo-mark">L</div>
       <div>
-        <div class="logo-text">LeadOS<span class="logo-version">v0.20</span></div>
+        <div class="logo-text">LeadOS<span class="logo-version">v0.21</span></div>
         <div class="logo-sub">Command Center</div>
       </div>
     </div>
@@ -996,6 +996,7 @@ const state = {
   projects: [],
   guestTeams: [],
   dragTask: null,
+  projectNotes: {},
 };
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
@@ -1604,6 +1605,8 @@ views.projects = function() {
             ${s.role?`<span style="color:var(--t2)">· ${s.role}</span>`:''}
           </span>`).join('')}
       </div>` : ''}
+    ${selProj ? renderProjectNotes(selProj) : ''}
+
     ${projMinutes.length ? (()=>{ const last = projMinutes[0]; return `
       <div style="margin-bottom:14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--bg4)">
@@ -1996,6 +1999,30 @@ views.minutes = function() {
 // ─── VIEW: USER GUIDE ─────────────────────────────────────────────────────────
 const GUIDE_SECTIONS = [
   {
+    id: 'roles',
+    title: 'Roles & Access',
+    icon: '🔐',
+    content: `
+      <p>LeadOS has three roles. What you see and can do depends on which role you are assigned.</p>
+      <h4>Team Leader</h4>
+      <p>Full access to all views and data for their team. Can add and remove team members, create and delete projects, assign tasks, manage risks, and view all 1:1 notes, team notes, and meeting minutes.</p>
+      <h4>Team Member (IC)</h4>
+      <p>Sees only their own work. Their experience is focused on their tasks, projects, risks, and capacity. Specifically:</p>
+      <ul>
+        <li><strong>Overview</strong> — personal dashboard (my tasks, my deadlines, my capacity, my risks).</li>
+        <li><strong>Team</strong> — read-only roster. Can see who is on the team but cannot click through to 1:1 profiles.</li>
+        <li><strong>Workload</strong> — their own row only.</li>
+        <li><strong>Projects</strong> — only projects they are involved in. Can add notes. Cannot add, edit, or delete projects.</li>
+        <li><strong>Risk Tracker</strong> — only risks they own. Read-only view.</li>
+        <li>No access to 1:1 Support, Team Notes, or Meeting Minutes.</li>
+      </ul>
+      <h4>Guest Leader</h4>
+      <p>Read-only access to one or more teams they do not manage. Useful for senior leaders or cross-functional stakeholders who need visibility without editing rights.</p>
+      <h4>Login Accounts</h4>
+      <p>When a team leader adds a new team member, a login account is automatically created. The default username follows the format <code>firstInitial.lastName</code> (e.g. <code>s.chen</code>) and the default password is <code>1234</code>. The leader should share these credentials with the new team member.</p>
+    `
+  },
+  {
     id: 'getting-started',
     title: 'Getting Started',
     icon: '🚀',
@@ -2014,24 +2041,21 @@ const GUIDE_SECTIONS = [
     title: 'Overview',
     icon: '📊',
     content: `
-      <p>The <strong>Overview</strong> is your daily dashboard. It gives you a snapshot of the most important things happening right now.</p>
-      <h4>KPI Cards (top row)</h4>
+      <p>The <strong>Overview</strong> is your daily dashboard. What you see depends on your role.</p>
+      <h4>Team Leader View</h4>
       <ul>
-        <li><strong>Team Members</strong> — total people on your team across all projects. Click to go to the Team view.</li>
-        <li><strong>Overloaded</strong> — number of team members at 100% or more capacity. Click to go to Workload.</li>
+        <li><strong>Team Members</strong> — total people on your team. Click to go to the Team view.</li>
+        <li><strong>Overloaded</strong> — team members at 100%+ capacity. Click to go to Workload.</li>
         <li><strong>Open Risks</strong> — total active risks. Click to go to Risk Tracker.</li>
-        <li><strong>Critical This Week</strong> — high-priority tasks due within the next 7 days.</li>
+        <li><strong>Critical This Week</strong> — high-priority tasks due within 7 days.</li>
+        <li><strong>Top Risks</strong> — highest-severity open risks requiring action.</li>
+        <li><strong>Team Capacity</strong> — a quick bar of each member's workload percentage.</li>
+        <li><strong>Escalations</strong> — appears if anyone is overloaded, with a direct link to resolve.</li>
       </ul>
-      <h4>Top Risks</h4>
-      <p>Shows your highest-severity open risks. Red cards mean immediate action is needed. Click any card to go to the Risk Tracker.</p>
-      <h4>Critical Deadlines</h4>
-      <p>Lists high-priority tasks due within 7 days, color-coded by urgency: red = due in 2 days or less, amber = 3–5 days, green = 6–7 days.</p>
-      <h4>Team Capacity</h4>
-      <p>A quick bar chart of each team member's current workload. Green = healthy, Amber = near the limit (80–99%), Red = overloaded (100%+).</p>
-      <h4>Escalations</h4>
-      <p>If anyone is overloaded, an escalation card appears at the bottom with a "Resolve" button that takes you to Workload so you can reassign tasks.</p>
+      <h4>Team Member (IC) View</h4>
+      <p>ICs see a personal dashboard showing only their own work: active task count, high-priority tasks, deadlines due this week, their projects, their capacity bar, their open risks, and a full table of their active tasks.</p>
       <h4>Overdue Risk Alert</h4>
-      <p>A red banner appears at the top of the page if any open risk has passed its due date. Take action immediately.</p>
+      <p>A red banner appears at the top if any open risk has passed its due date.</p>
     `
   },
   {
@@ -2039,20 +2063,20 @@ const GUIDE_SECTIONS = [
     title: 'Team',
     icon: '👥',
     content: `
-      <p>The <strong>Team</strong> view shows a card for each team member with their current workload, task count, and a preview of their top tasks.</p>
-      <h4>Reading a Person Card</h4>
+      <p>The <strong>Team</strong> view shows a card for each team member. What you can do depends on your role.</p>
+      <h4>Team Leader View</h4>
       <ul>
-        <li><strong>Capacity bar</strong> — shows what percentage of their weekly hours are allocated. Green is fine, amber is getting full, red means overloaded.</li>
-        <li><strong>Stats row</strong> — Tasks (total assigned), High Pri (high-priority count), Hours (total allocated hours), Projects (how many projects they are on).</li>
-        <li><strong>Task preview</strong> — shows up to 2 of their tasks with risk indicators. Click the card to open their full 1:1 profile.</li>
-        <li><strong>Risk badge</strong> (top-right of card) — red means at least one of their tasks is high risk, amber means medium risk, green means all clear.</li>
+        <li><strong>Capacity bar</strong> — percentage of weekly hours allocated. Green = fine, amber = near limit, red = overloaded.</li>
+        <li><strong>Stats row</strong> — Tasks, High Pri, Hours, Projects.</li>
+        <li><strong>Task preview</strong> — up to 2 tasks with risk indicators. Click the card to open their full 1:1 profile.</li>
+        <li><strong>Risk badge</strong> — red = at least one high-risk task, amber = medium risk, green = all clear.</li>
       </ul>
       <h4>Adding a Team Member</h4>
-      <p>Click <strong>+ Add Member</strong> in the top-right. Fill in their name, role, and pick a color for their avatar.</p>
-      <h4>Editing a Team Member</h4>
-      <p>Click the pencil icon on their card. You can update their name, role, and color.</p>
-      <h4>Adding a Task from Team View</h4>
-      <p>Click <strong>+ Add Task</strong> in the top-right to create a new task and assign it to someone.</p>
+      <p>Click <strong>+ Add Member</strong> in the top-right. Fill in their name, role, initials, and color. A login account is automatically created with a username based on their first initial and last name (e.g. "Sarah Chen" → <code>s.chen</code>) and a default password of <code>1234</code>. The credentials are shown in a popup — share them with the new team member.</p>
+      <h4>Removing a Team Member</h4>
+      <p>Click the pencil icon on their card, then click <strong>Remove</strong>. If they have open tasks or own any projects, you must resolve those first — reassign each task to another team member (or mark it done) and transfer project ownership before the removal is allowed. Their login account is also deleted.</p>
+      <h4>Team Member (IC) View</h4>
+      <p>ICs see a read-only roster of the team — name, role, and avatar only. No click-through to 1:1 profiles.</p>
     `
   },
   {
@@ -2060,18 +2084,18 @@ const GUIDE_SECTIONS = [
     title: 'Workload',
     icon: '📈',
     content: `
-      <p>The <strong>Workload</strong> view shows each team member's allocated hours and lets you reassign tasks by dragging and dropping.</p>
-      <h4>Reading the Workload View</h4>
-      <p>Each person has a capacity bar and a row of task chips showing their current assignments. The percentage and hours (e.g. 32h / 40h) are shown next to their name.</p>
+      <p>The <strong>Workload</strong> view shows allocated hours and lets you reassign tasks by dragging and dropping.</p>
+      <h4>Team Leader View</h4>
+      <p>All team members are shown. Each row has a capacity bar and task chips for their current assignments (percentage and hours, e.g. 32h / 40h).</p>
       <ul>
-        <li><strong>Green (≤80%)</strong> — healthy capacity, room for more work.</li>
-        <li><strong>Amber (80–99%)</strong> — near the limit. Be cautious about adding more.</li>
+        <li><strong>Green (≤80%)</strong> — healthy, room for more work.</li>
+        <li><strong>Amber (80–99%)</strong> — near the limit.</li>
         <li><strong>Red (100%+)</strong> — overloaded. Reassign tasks immediately.</li>
       </ul>
-      <h4>Reassigning Tasks by Drag and Drop</h4>
-      <p>Grab any task chip and drag it to another person's task area. Their capacity will update instantly. The task chip shows the project color, task name, and hours.</p>
-      <h4>Capacity Legend</h4>
-      <p>A legend bar at the top of the page explains the color coding: Green ≤80%, Amber 80–99%, Red 100%+.</p>
+      <h4>Reassigning Tasks (Leader only)</h4>
+      <p>Drag any task chip to another person's row. Capacity updates instantly.</p>
+      <h4>Team Member (IC) View</h4>
+      <p>ICs see only their own row — their capacity bar and their assigned task chips.</p>
     `
   },
   {
@@ -2083,21 +2107,23 @@ const GUIDE_SECTIONS = [
       <h4>Project Cards</h4>
       <p>Each card shows the project name, description, business function, status badge, business priority pips (1–5 dots), regulatory risk, task count, and deadline. Click a card to filter the task table to that project's tasks. Click again to deselect.</p>
       <ul>
-        <li><strong>Business Priority pips</strong> — 5 colored dots. More filled dots = higher business priority. Red = 5 (critical), amber = 4, blue = 3, green = 2, gray = 1.</li>
+        <li><strong>Business Priority pips</strong> — 5 colored dots. More filled = higher priority. Red = 5 (critical), amber = 4, blue = 3, green = 2, gray = 1.</li>
         <li><strong>Deadline color</strong> — red if due within 7 days, amber if within 14 days.</li>
         <li><strong>Stakeholders</strong> — when a project is selected, the project team members appear below the cards.</li>
-        <li><strong>Latest Meeting Minutes</strong> — if a project is selected and has meeting minutes linked to it, the most recent one appears as a preview.</li>
+        <li><strong>Latest Meeting Minutes</strong> — if a project is selected and has linked minutes, the most recent one appears as a preview.</li>
       </ul>
+      <h4>Project Notes</h4>
+      <p>When a project is selected, a <strong>Notes</strong> panel appears below the project cards. Both the team leader and team members can add notes — useful for capturing context, decisions, or updates related to the project. Notes are shown newest-first in a scrollable feed. Click <strong>+ Add</strong> to write a note (press <code>Ctrl+Enter</code> or <code>Cmd+Enter</code> to save quickly). Hover over a note and click the × button to delete it. Leaders can delete any note; team members can only delete their own.</p>
       <h4>Adding / Editing / Deleting a Project</h4>
-      <p>Click <strong>+ Add Project</strong> to create a new one. Click <strong>Edit</strong> on any project card to update it. Click <strong>Delete</strong> to remove it (you will be asked to confirm).</p>
+      <p>Click <strong>+ Add Project</strong> to create a new one. Click <strong>Edit</strong> on any project card to update it. Click <strong>Delete</strong> to remove it (confirmation required). These actions are available to team leaders only.</p>
       <h4>Task Table</h4>
       <p>The table lists tasks with columns for priority, project, business priority, regulatory risk, due date, hours, risk level, and assignee. Columns with ↕ can be clicked to sort.</p>
       <h4>Filters</h4>
       <p>Use the dropdowns above the table to filter by team member, priority, and risk level. Sorting options: Due Date, Priority, Risk, Business Priority.</p>
       <h4>Conflict Detection</h4>
-      <p>If a person has two or more high-priority tasks due on the same day, a yellow warning banner appears and those tasks are flagged with a "⚑ Conflict" label.</p>
+      <p>If a person has two or more high-priority tasks due on the same day, a warning banner appears and those tasks are flagged with a "⚑ Conflict" label.</p>
       <h4>Adding / Editing a Task</h4>
-      <p>Click <strong>+ Add Task</strong> to create a new task. Fill in the title, project, assignee, priority, due date, hours, risk level, and regulatory risk. Click <strong>Edit</strong> on any task row to update or delete it.</p>
+      <p>Click <strong>+ Add Task</strong> to create a new task. Fill in the title, project, assignee, priority, due date, hours, risk level, and regulatory risk. Click <strong>Edit</strong> on any task row to update or delete it. Team members can edit their own tasks only.</p>
     `
   },
   {
@@ -2290,8 +2316,12 @@ function filterGuide(q) {
 }
 
 // ─── FILTER ───────────────────────────────────────────────────────────────────
-function setFilter(key, val) {
+async function setFilter(key, val) {
   state.taskFilter[key] = val;
+  if (key === 'project' && val !== 'all' && !state.projectNotes[val]) {
+    const notes = await api('GET', '/api/projects/' + val + '/notes');
+    state.projectNotes[val] = notes || [];
+  }
   navigate('projects');
 }
 function goToPersonTasks(mid) {
@@ -3105,6 +3135,76 @@ function deleteMember(mid) {
   closeModal();
   showToast(`${m.name} removed from team`);
   navigate('team');
+}
+
+// ─── PROJECT NOTES ────────────────────────────────────────────────────────────
+function renderProjectNotes(proj) {
+  const notes = state.projectNotes[proj.id] || [];
+  const noteItems = notes.length ? notes.map(n => {
+    const dt = new Date(n.created_at);
+    const age = Math.floor((Date.now() - dt) / 60000);
+    const timeAgo = age < 1 ? 'just now' : age < 60 ? `${age}m ago` : age < 1440 ? `${Math.floor(age/60)}h ago` : `${Math.floor(age/1440)}d ago`;
+    const canDelete = isLeader() || n.user_id === currentUser?.id;
+    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border)">
+      <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--bg5);border:1px solid var(--border-md);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--t1);margin-top:1px">${n.username.slice(0,2).toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px">
+          <span style="font-size:12px;font-weight:600;color:var(--t0)">${n.username}</span>
+          <span style="font-size:10px;color:var(--t2)">${timeAgo}</span>
+        </div>
+        <div style="font-size:12px;color:var(--t1);line-height:1.55;white-space:pre-wrap">${n.text}</div>
+      </div>
+      ${canDelete ? `<button onclick="deleteProjectNote('${proj.id}',${n.id})" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--t2);padding:0 4px;font-size:16px;line-height:1;opacity:0.35;margin-top:2px" onmouseenter="this.style.opacity='1';this.style.color='var(--red)'" onmouseleave="this.style.opacity='0.35';this.style.color='var(--t2)'">×</button>` : ''}
+    </div>`;
+  }).join('') : `<div style="padding:16px;font-size:13px;color:var(--t2);text-align:center">No notes yet — be the first to add one.</div>`;
+
+  return `<div style="margin-bottom:14px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${proj.color};border-radius:var(--r);overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--bg4);border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:0.05em">Notes</span>
+        ${notes.length ? `<span style="font-size:10px;padding:1px 7px;border-radius:10px;background:var(--bg5);color:var(--t2);font-family:var(--font-m)">${notes.length}</span>` : ''}
+      </div>
+      <button onclick="toggleNoteInput('${proj.id}')" class="btn btn-ghost btn-sm" style="font-size:12px">+ Add</button>
+    </div>
+    <div id="note-input-area-${proj.id}" style="display:none;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg2)">
+      <textarea id="note-text-${proj.id}" placeholder="Write a note…" style="width:100%;height:64px;background:var(--bg3);border:1px solid var(--border-md);border-radius:var(--r);padding:8px 12px;font-size:13px;color:var(--t0);font-family:var(--font-u);resize:none;outline:none;box-sizing:border-box;line-height:1.5" onkeydown="if(event.key==='Enter'&&(event.metaKey||event.ctrlKey))submitProjectNote('${proj.id}')"></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:6px">
+        <button class="btn btn-ghost btn-sm" onclick="toggleNoteInput('${proj.id}')">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="submitProjectNote('${proj.id}')">Save</button>
+      </div>
+    </div>
+    <div id="notes-feed-${proj.id}" style="max-height:180px;overflow-y:auto">${noteItems}</div>
+  </div>`;
+}
+
+function toggleNoteInput(pid) {
+  const area = document.getElementById('note-input-area-' + pid);
+  if (!area) return;
+  const visible = area.style.display !== 'none';
+  area.style.display = visible ? 'none' : 'block';
+  if (!visible) setTimeout(() => document.getElementById('note-text-' + pid)?.focus(), 50);
+}
+
+async function submitProjectNote(pid) {
+  const el = document.getElementById('note-text-' + pid);
+  const text = el?.value.trim();
+  if (!text) return;
+  const note = await api('POST', '/api/projects/' + pid + '/notes', { text });
+  if (!note) return;
+  if (!state.projectNotes[pid]) state.projectNotes[pid] = [];
+  state.projectNotes[pid].unshift(note);
+  el.value = '';
+  toggleNoteInput(pid);
+  // Re-render just the feed
+  const feed = document.getElementById('notes-feed-' + pid);
+  if (feed) feed.outerHTML = renderProjectNotes(state.projects.find(p=>p.id===pid)).match(/id="notes-feed-[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*$/)?.[0] || '';
+  navigate('projects'); // simplest re-render
+}
+
+async function deleteProjectNote(pid, nid) {
+  await api('DELETE', '/api/projects/' + pid + '/notes/' + nid);
+  state.projectNotes[pid] = (state.projectNotes[pid] || []).filter(n => n.id !== nid);
+  navigate('projects');
 }
 
 // ─── PROJECT MODALS ──────────────────────────────────────────────────────────

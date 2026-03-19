@@ -365,6 +365,36 @@ router.delete('/projects/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+// ─── PROJECT NOTES ────────────────────────────────────────────────────────────
+router.get('/projects/:id/notes', (req, res) => {
+  if (isGuestLeader(req)) return res.status(403).json({ error: 'Read-only access' });
+  const notes = db.prepare('SELECT * FROM project_notes WHERE project_id = ? ORDER BY created_at DESC').all(req.params.id);
+  res.json(notes);
+});
+
+router.post('/projects/:id/notes', (req, res) => {
+  if (isGuestLeader(req)) return res.status(403).json({ error: 'Read-only access' });
+  const user = req.user;
+  const { text } = req.body;
+  if (!text || !text.trim()) return res.status(400).json({ error: 'Text required' });
+  const teamId = user.teamId;
+  const result = db.prepare(
+    'INSERT INTO project_notes (project_id, team_id, user_id, username, text) VALUES (?, ?, ?, ?, ?)'
+  ).run(req.params.id, teamId, user.id, user.username, text.trim());
+  const note = db.prepare('SELECT * FROM project_notes WHERE id = ?').get(result.lastInsertRowid);
+  res.json(note);
+});
+
+router.delete('/projects/:id/notes/:nid', (req, res) => {
+  if (isGuestLeader(req)) return res.status(403).json({ error: 'Read-only access' });
+  const user = req.user;
+  const note = db.prepare('SELECT * FROM project_notes WHERE id = ?').get(req.params.nid);
+  if (!note) return res.status(404).json({ error: 'Note not found' });
+  if (!isLeader(req) && note.user_id !== user.id) return res.status(403).json({ error: 'You can only delete your own notes' });
+  db.prepare('DELETE FROM project_notes WHERE id = ?').run(req.params.nid);
+  res.json({ ok: true });
+});
+
 // Stakeholders
 router.post('/projects/:id/stakeholders', (req, res) => {
   if (!isLeader(req)) return res.status(403).json({ error: 'Leader access required' });

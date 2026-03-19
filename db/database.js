@@ -171,6 +171,16 @@ CREATE TABLE IF NOT EXISTS audit_log (
   entity_title TEXT,
   timestamp TEXT DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS project_notes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id TEXT NOT NULL,
+  team_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  username TEXT NOT NULL,
+  text TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now'))
+);
 `);
 
 // ─── MIGRATIONS ───────────────────────────────────────────────────────────────
